@@ -1,0 +1,97 @@
+---
+title: "Bladder Cancer Analysis"
+author: "Mohd Azmi"
+date: "26/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Environment
+
+```{r}
+library(pacman)
+p_load(broom, tidyverse, knitr, summarytools, ordinal)
+```
+# Dataset
+
+```{r}
+library(haven)
+bladderca0 <- read_sav("my bladder cancer.sav")
+bladderca0 <- bladderca0 %>% mutate_if(is.labelled, funs(as_factor(.)))
+bladderca1 <- bladderca0 %>% 
+  select(Stage, Age, AgeC, Sex, Ethn)
+```
+
+# Exploratory
+
+```{r}
+descr(bladderca1)
+freq(bladderca1)
+```
+
+# Ordinal Logistic Regression
+
+Proportional Odds Model
+
+```{r}
+levels(bladderca1$Stage)
+levels(bladderca1$AgeC)
+ordmod1 <- clm(Stage ~ AgeC, data = bladderca1)
+summary(ordmod1)
+tidy(ordmod1, conf.int = T)
+tidy(ordmod1, conf.int = T, exponentiate = T)
+```
+
+
+```{r}
+levels(bladderca1)
+ordmod2 <- clm (Stage ~ Age + Sex + Ethn, data = bladderca1)
+summary(ordmod2)
+tidy(ordmod2, conf.int = T)
+```
+
+## proportional odds assumption
+
+- nominal test method
+
+```{r}
+nominal_test(ordmod2)
+```
+
+- brant
+
+```{r}
+library(brant)
+library(MASS)
+polr_cr3_ordmod2 <- polr(Stage ~ Age + Sex + Ethn, data = bladderca1, Hess = T)
+summary(polr_cr3_ordmod2)
+brant(polr_cr3_ordmod2)
+```
+
+
+
+# Multinomial Logistic Regression
+
+```{r}
+library(VGAM)
+levels(bladderca1$Stage)
+mnommod1 <- vglm(Stage ~ Age + Sex + Ethn, family=multinomial, data = bladderca1,)
+summary(mnommod1)
+data.frame(exp(mnommod1@coefficients))
+```
+
+
+# Predict Probability (Ordinal)
+
+```{r}
+predprob_ordmod2 <- augment(ordmod2, type.predict = "prob")
+predprob_ordmod2
+
+predclass_ordmod2 <- augment(ordmod2, type.predict= "class")
+predclass_ordmod2
+freq(predclass_ordmod2$.fitted)
+table(predclass_ordmod2$Stage, predclass_ordmod2$.fitted)
+```
+
