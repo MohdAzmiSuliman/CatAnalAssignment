@@ -1,0 +1,17 @@
+---
+title: "Logistic Regression - Ordinal and Multinomial"
+author: "Mohd Azmi"
+date: "27/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+dataset <- read_excel("data_ord_prac.xlsx")
+head(dataset)
+```
+
