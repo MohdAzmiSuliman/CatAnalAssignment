@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(pacman)
-p_load(readxl, tidyverse, summarytools, broom, knitr, ordinal)
+p_load(readxl, tidyverse, summarytools, broom, knitr, ordinal, brant)
 ```
 
 ## Dataset & Data Wrangling
@@ -103,5 +103,63 @@ Model 1 - IV - bmicategory, waist circumference, total cholesterol, dyslipidaemi
 clm_mod1 <- clm(HbA1C_T ~ bmic + wc + tc + Dyslipidaemia + gender + Age, data = anads1)
 summary(clm_mod1)
 ```
+
+Model 2 - remove wc
+
+```{r}
+clm_mod2 <- clm(HbA1C_T ~ bmic + tc + Dyslipidaemia + gender + Age, data = anads1)
+summary(clm_mod2)
+```
+
+model 3 - remove wc & bmicat
+
+```{r}
+clm_mod3 <- clm(HbA1C_T ~ tc + Dyslipidaemia + gender + Age, data = anads1)
+summary(clm_mod3)
+```
+
+
+### Model comparison
+
+done using LR test
+
+```{r}
+anova(clm_mod1, clm_mod2, test="Chisq")
+anova(clm_mod2, clm_mod3, test="Chisq")
+```
+
+Interpretation: waist circumference can be remove but BMI category was an important predictor.
+
+### Interaction
+
+add interaction term between gender and bmi
+
+```{r}
+anads1 %>% group_by(gender) %>% descr()
+t.test(anads1$tc ~ anads1$gender)
+ctable(anads1$bmic, anads1$gender)
+chisq.test(anads1$bmic, anads1$gender)
+```
+
+```{r}
+clm_mod2ia <- clm(HbA1C_T ~ bmic + tc + Dyslipidaemia + gender + Age + gender:tc, data = anads1)
+summary(clm_mod2ia)
+anova(clm_mod2, clm_mod2ib)
+
+clm_mod2ib <- clm(HbA1C_T ~ bmic + tc + Dyslipidaemia + gender + Age + gender:bmic, data = anads1)
+summary(clm_mod2ib)
+anova(clm_mod2, clm_mod2ib)
+```
+
+Interpretation: interaction terms was not significant
+
+### Assumption checking - Proportional odds assumption
+
+### Final Model
+
+```{r}
+tidy(clm_mod2)
+```
+
 
 
