@@ -52,9 +52,12 @@ freq(anads0)
 there are some numerical variables that have missing value. missing value will be removed
 
 ```{r}
-anads1 <- anads0 %>% drop_na() %>% 
+levhba1c <- c("Target 3 (>7.0)", "Target 2 (6.6 - 7.0)", "Target 1 (<= 6.5)")
+anads1 <- anads0 %>%
     mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
                          labels = c("Target 1 (<= 6.5)", "Target 2 (6.6 - 7.0)", "Target 3 (>7.0)"))) %>%
+    mutate(HbA1C_Ta = fct_relevel(HbA1C_T, levhba1c)) %>% 
+    mutate(HbA1C_Ta = ordered(HbA1C_Ta, levels = levhba1c)) %>%
     mutate(wt = `Physical Weight`,
            gender = Sex,
            ethnic = `Ethnic Group`,
@@ -65,7 +68,7 @@ anads1 <- anads0 %>% drop_na() %>%
            bmi = wt/((ht/100)^2)) %>%
     mutate(bmic = cut(bmi, breaks = c(0, 18.499, 22.999, 26.999, 80),
                       labels = c("underweight", "normal", "overweight", "obese"))) %>% 
-    select(HbA1c, HbA1C_T, Age, gender, ethnic, dmage, ht, wt, bmi, bmic, wc, tc, Dyslipidaemia) %>%
+    select(HbA1c, HbA1C_Ta, Age, gender, ethnic, dmage, ht, wt, bmi, bmic, wc, tc, Dyslipidaemia) %>%
     filter(Dyslipidaemia == "yes" | Dyslipidaemia == "no") %>%
     drop_na()
 head(anads1)
@@ -82,16 +85,16 @@ from total 9,457 samples, `r 9457 - 5119` samples with missing data, making only
 ### Age
 
 ```{r}
-levels(anads1$HbA1C_T)
-clm_age <- clm(HbA1C_T ~ Age, data = anads1)
+levels(anads1$HbA1C_Ta)
+clm_age <- clm(HbA1C_Ta ~ Age, data = anads1)
 summary(clm_age)
 ```
 
 ### gender
 
 ```{r}
-levels(anads1$HbA1C_T)
-clm_gender <- clm(HbA1C_T ~ gender, data = anads1)
+levels(anads1$HbA1C_Ta)
+clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
 summary(clm_gender)
 ```
 
@@ -100,21 +103,21 @@ summary(clm_gender)
 Model 1 - IV - bmicategory, waist circumference, total cholesterol, dyslipidaemia status, gender and age
 
 ```{r}
-clm_mod1 <- clm(HbA1C_T ~ bmic + wc + tc + Dyslipidaemia + gender + Age, data = anads1)
+clm_mod1 <- clm(HbA1C_Ta ~ bmic + wc + tc + Dyslipidaemia + gender + Age, data = anads1)
 summary(clm_mod1)
 ```
 
 Model 2 - remove wc
 
 ```{r}
-clm_mod2 <- clm(HbA1C_T ~ bmic + tc + Dyslipidaemia + gender + Age, data = anads1)
+clm_mod2 <- clm(HbA1C_Ta ~ bmic + tc + Dyslipidaemia + gender + Age, data = anads1)
 summary(clm_mod2)
 ```
 
 model 3 - remove wc & bmicat
 
 ```{r}
-clm_mod3 <- clm(HbA1C_T ~ tc + Dyslipidaemia + gender + Age, data = anads1)
+clm_mod3 <- clm(HbA1C_Ta ~ tc + Dyslipidaemia + gender + Age, data = anads1)
 summary(clm_mod3)
 ```
 
@@ -142,11 +145,11 @@ chisq.test(anads1$bmic, anads1$gender)
 ```
 
 ```{r}
-clm_mod2ia <- clm(HbA1C_T ~ bmic + tc + Dyslipidaemia + gender + Age + gender:tc, data = anads1)
+clm_mod2ia <- clm(HbA1C_Ta ~ bmic + tc + Dyslipidaemia + gender + Age + gender:tc, data = anads1)
 summary(clm_mod2ia)
 anova(clm_mod2, clm_mod2ib)
 
-clm_mod2ib <- clm(HbA1C_T ~ bmic + tc + Dyslipidaemia + gender + Age + gender:bmic, data = anads1)
+clm_mod2ib <- clm(HbA1C_Ta ~ bmic + tc + Dyslipidaemia + gender + Age + gender:bmic, data = anads1)
 summary(clm_mod2ib)
 anova(clm_mod2, clm_mod2ib)
 ```
@@ -158,7 +161,14 @@ Interpretation: interaction terms was not significant
 ### Final Model
 
 ```{r}
-tidy(clm_mod2)
+summary(clm_mod2)
+tidy(clm_mod2, conf.int = T)
+tidy(clm_mod2, exponentiate = T, conf.int = T)
+
+result_clmmod2 <- matrix(c("Variables", "", "Coefficient", "SE", "p-value", "OR (95% CI)",
+                           "Intercept 1", "","","","",""),ncol=6,byrow=TRUE)
+result_clmmod2
+
 ```
 
 
