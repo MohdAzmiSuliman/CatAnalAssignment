@@ -17,7 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(pacman)
-p_load(readxl, tidyverse, summarytools)
+p_load(readxl, tidyverse, summarytools, broom, knitr, ordinal)
 ```
 
 ## Dataset & Data Wrangling
@@ -43,7 +43,7 @@ write.csv(dataset,'dataset.csv')
 
 ### Data Exploration
 ```{r}
-anads0 <- read_csv("dataset.csv", col_types = cols(X1 = col_skip()))
+anads0 <- read_csv("dataset.csv", col_types = cols(`Body mass index` = col_skip(), X1 = col_skip()))
 head(anads0)
 descr(anads0)
 freq(anads0)
@@ -52,13 +52,56 @@ freq(anads0)
 there are some numerical variables that have missing value. missing value will be removed
 
 ```{r}
-anads1 <- anads0 %>% drop_na() 
+anads1 <- anads0 %>% drop_na() %>% 
+    mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
+                         labels = c("Target 1 (<= 6.5)", "Target 2 (6.6 - 7.0)", "Target 3 (>7.0)"))) %>%
+    mutate(wt = `Physical Weight`,
+           gender = Sex,
+           ethnic = `Ethnic Group`,
+           dmage = `Diabetes Age`,
+           ht = `Physical Height`,
+           wc = `Physical Waist circumference`,
+           tc = `Total Cholesterol`,
+           bmi = wt/((ht/100)^2)) %>%
+    mutate(bmic = cut(bmi, breaks = c(0, 18.499, 22.999, 26.999, 80),
+                      labels = c("underweight", "normal", "overweight", "obese"))) %>% 
+    select(HbA1c, HbA1C_T, Age, gender, ethnic, dmage, ht, wt, bmi, bmic, wc, tc, Dyslipidaemia) %>%
+    filter(Dyslipidaemia == "yes" | Dyslipidaemia == "no") %>%
+    drop_na()
 head(anads1)
 descr(anads1)
 freq(anads1)
 ```
 
-from total 9,457 samples, `r 9457 - 5043` samples with missing data, making only 5,043 sample for analysis.
+from total 9,457 samples, `r 9457 - 5119` samples with missing data, making only 5,119 sample for analysis.
 
 # Ordinal Logistic Regression
+
+## Univariable
+
+### Age
+
+```{r}
+levels(anads1$HbA1C_T)
+clm_age <- clm(HbA1C_T ~ Age, data = anads1)
+summary(clm_age)
+```
+
+### gender
+
+```{r}
+levels(anads1$HbA1C_T)
+clm_gender <- clm(HbA1C_T ~ gender, data = anads1)
+summary(clm_gender)
+```
+
+## Multivariable
+
+Model 1 - IV - bmicategory, waist circumference, total cholesterol, dyslipidaemia status, gender and age
+
+```{r}
+clm_mod1 <- clm(HbA1C_T ~ bmic + wc + tc + Dyslipidaemia + gender + Age, data = anads1)
+summary(clm_mod1)
+```
+
 
