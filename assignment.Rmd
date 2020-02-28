@@ -5,15 +5,22 @@ date: "27/02/2020"
 output: html_document
 ---
 
+#Pre-amble
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+## Problem Statements
+
+## Environment
+
 ```{r}
 library(pacman)
-p_load(readxl, tidyverse)
+p_load(readxl, tidyverse, summarytools)
 ```
 
+## Dataset & Data Wrangling
 
 ```{r, eval=F, echo=T}
 dataset <- read_excel("data_ord_prac.xlsx", 
@@ -33,4 +40,25 @@ dataset <- read_excel("data_ord_prac.xlsx",
 head(dataset)
 write.csv(dataset,'dataset.csv')
 ```
+
+### Data Exploration
+```{r}
+anads0 <- read_csv("dataset.csv", col_types = cols(X1 = col_skip()))
+head(anads0)
+descr(anads0)
+freq(anads0)
+```
+
+there are some numerical variables that have missing value. missing value will be removed
+
+```{r}
+anads1 <- anads0 %>% drop_na() 
+head(anads1)
+descr(anads1)
+freq(anads1)
+```
+
+from total 9,457 samples, `r 9457 - 5043` samples with missing data, making only 5,043 sample for analysis.
+
+# Ordinal Logistic Regression
 
