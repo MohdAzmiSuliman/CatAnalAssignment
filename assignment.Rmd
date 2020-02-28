@@ -10,8 +10,27 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-library(readxl)
-dataset <- read_excel("data_ord_prac.xlsx")
+library(pacman)
+p_load(readxl, tidyverse)
+```
+
+
+```{r, eval=F, echo=T}
+dataset <- read_excel("data_ord_prac.xlsx", 
+    col_types = c("numeric", "text", "text", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "numeric", "skip", "skip", 
+        "skip", "skip", "skip", "skip", "numeric", 
+        "numeric", "numeric", "numeric", 
+        "numeric", "skip", "skip", "skip", 
+        "skip", "skip", "skip", "skip", "skip", 
+        "skip", "skip", "skip", "skip", "skip", 
+        "skip", "skip", "skip", "text", "text", 
+        "text", "text", "text", "text", "text", 
+        "skip", "skip", "skip", "skip", "skip", 
+        "skip", "skip", "skip", "text", "text", 
+        "text"))
 head(dataset)
+write.csv(dataset,'dataset.csv')
 ```
 
