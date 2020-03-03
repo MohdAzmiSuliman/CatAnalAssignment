@@ -53,7 +53,7 @@ head(anads0)
 
 there are some numerical variables that have missing value. missing value will be removed
 
-```{r, warning=F}
+```{r, warning=F, message=F}
 levhba1c <- c("Target c (>7.0)", "Target b (6.6 - 7.0)", "Target a (<= 6.5)")
 anads1 <- anads0 %>%
     mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
@@ -78,7 +78,7 @@ descr(anads1)
 freq(anads1)
 ```
 
-from total 9,457 samples, `r 9457 - 5119` samples with missing data, making only 5,119 sample for analysis.
+from total 9,457 samples, `r 9457 - 6185` samples with missing data, making only 6,185 sample for analysis.
 
 # Ordinal Logistic Regression
 
@@ -90,10 +90,34 @@ from total 9,457 samples, `r 9457 - 5119` samples with missing data, making only
 levels(anads1$HbA1C_Ta)
 clm_bmic <- clm(HbA1C_Ta ~ bmic, data = anads1)
 summary(clm_bmic)
+tidy(clm_bmic, exponentiate = T, conf.int = T)
 ```
 
+Interpretation: 
 
-### Age
+### Predictor: Waist Circumference
+
+```{r}
+levels(anads1$HbA1C_Ta)
+clm_wc <- clm(HbA1C_Ta ~ wc, data = anads1)
+summary(clm_wc)
+tidy(clm_wc, exponentiate = T, conf.int = T)
+```
+
+Interpretation: 
+
+### Predictor: Total Cholesterol Level
+
+```{r}
+levels(anads1$HbA1C_Ta)
+clm_tc <- clm(HbA1C_Ta ~ tc, data = anads1)
+summary(clm_tc)
+tidy(clm_tc, exponentiate = T, conf.int = T)
+```
+
+Interpretation
+
+### Predictor: Age
 
 ```{r}
 levels(anads1$HbA1C_Ta)
