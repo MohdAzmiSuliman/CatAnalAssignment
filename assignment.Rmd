@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(pacman)
-p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, ordinal, brant)
+p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate, ordinal, brant)
 options(qwraps2_markup = "markdown")
 ```
 
@@ -178,11 +178,6 @@ multiplot(age_plot, ht_plot, wt_plot, bmi_plot, wc_plot, hba1c_plot, layout = ma
 -**extra**-
 
 animate plot of scatter plot between hba1c and bmi, by age
-
-```{r, warning=F}
-library(gganimate)
-```
-
 
 ```{r, eval = F, warning=F}
 ggplot(anads1, aes(x = bmi, y = HbA1c)) +
