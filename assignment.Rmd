@@ -184,7 +184,7 @@ library(gganimate)
 ```
 
 
-```{r, warning=F}
+```{r, eval = F, warning=F}
 ggplot(anads1, aes(x = bmi, y = HbA1c)) +
     geom_point(aes(colour = Age)) +
     transition_states(Age, transition_length = 5, state_length = 3) +
