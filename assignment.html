@@ -1575,22 +1575,23 @@ anads1 &lt;- anads0 %&gt;%
            ht = `Physical Height`,
            wc = `Physical Waist circumference`,
            tc = `Total Cholesterol`,
+           ethnic = `Ethnic Group`,
            bmi = wt/((ht/100)^2),
            bmic = cut(bmi, breaks = c(0, 18.499, 22.999, 26.999, 80),
                       labels = c(&quot;underweight&quot;, &quot;normal&quot;, &quot;overweight&quot;, &quot;obese&quot;))) %&gt;% 
-    select(HbA1c, HbA1C_Ta, Age, gender, dmage, ht, wt, bmi, bmic, wc, tc, Dyslipidaemia) %&gt;%
+    select(HbA1c, HbA1C_Ta, Age, gender, ethnic, dmage, ht, wt, bmi, bmic, wc, tc, Dyslipidaemia) %&gt;%
     filter(Dyslipidaemia == &quot;yes&quot; | Dyslipidaemia == &quot;no&quot;) %&gt;%
     drop_na()
 head(anads1)</code></pre>
-<pre><code>## # A tibble: 6 x 12
-##   HbA1c HbA1C_Ta   Age gender dmage    ht    wt   bmi bmic     wc    tc
-##   &lt;dbl&gt; &lt;ord&gt;    &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt;
-## 1   7   Target ~    90 Female    83   152  49    21.2 norm~    88   4.9
-## 2   7.5 Target ~    80 Male      72   163  69    26.0 over~    97   2.9
-## 3   7.7 Target ~    80 Male      72   159  69.5  27.5 obese    90   2.6
-## 4  13.8 Target ~    75 Male      62   159  60    23.7 over~    97   3.8
-## 5   6.9 Target ~    72 Male      54   173  85    28.4 obese    99   3.1
-## 6  13.1 Target ~    71 Female    57   160  60    23.4 over~    99   5.9
+<pre><code>## # A tibble: 6 x 13
+##   HbA1c HbA1C_Ta   Age gender ethnic dmage    ht    wt   bmi bmic     wc    tc
+##   &lt;dbl&gt; &lt;ord&gt;    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt; &lt;dbl&gt; &lt;dbl&gt;
+## 1   7   Target ~    90 Female Malay     83   152  49    21.2 norm~    88   4.9
+## 2   7.5 Target ~    80 Male   Chine~    72   163  69    26.0 over~    97   2.9
+## 3   7.7 Target ~    80 Male   Malay     72   159  69.5  27.5 obese    90   2.6
+## 4  13.8 Target ~    75 Male   Chine~    62   159  60    23.7 over~    97   3.8
+## 5   6.9 Target ~    72 Male   Chine~    54   173  85    28.4 obese    99   3.1
+## 6  13.1 Target ~    71 Female Malay     57   160  60    23.4 over~    99   5.9
 ## # ... with 1 more variable: Dyslipidaemia &lt;chr&gt;</code></pre>
 <pre class="r"><code>descr(anads1)</code></pre>
 <pre><code>## Descriptive Statistics  
@@ -1636,6 +1637,23 @@ head(anads1)</code></pre>
 ##         Male   2373     38.37         100.00     38.37         100.00
 ##         &lt;NA&gt;      0                               0.00         100.00
 ##        Total   6185    100.00         100.00    100.00         100.00
+## 
+## anads1$ethnic  
+## Type: Character  
+## 
+##                                 Freq   % Valid   % Valid Cum.   % Total   % Total Cum.
+## ----------------------------- ------ --------- -------------- --------- --------------
+##                         Bajau      1      0.02           0.02      0.02           0.02
+##                       Chinese   1449     23.43          23.44     23.43          23.44
+##              Foreign National      1      0.02          23.46      0.02          23.46
+##                        Indian   1181     19.09          42.55     19.09          42.55
+##                         Malay   3509     56.73          99.29     56.73          99.29
+##                         Murut      1      0.02          99.30      0.02          99.30
+##       Orang Asli (Peninsular)     23      0.37          99.68      0.37          99.68
+##                        Others     19      0.31          99.98      0.31          99.98
+##                       Unknown      1      0.02         100.00      0.02         100.00
+##                          &lt;NA&gt;      0                               0.00         100.00
+##                         Total   6185    100.00         100.00    100.00         100.00
 ## 
 ## anads1$bmic  
 ## Type: Factor  
@@ -1690,9 +1708,82 @@ summary(clm_bmic)</code></pre>
 ##                                        Estimate Std. Error z value
 ## Target c (&gt;7.0)|Target b (6.6 - 7.0)   -0.40855    0.17087  -2.391
 ## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  0.02355    0.17079   0.138</code></pre>
+<pre class="r"><code>tidy(clm_bmic, exponentiate = T, conf.int = T)</code></pre>
+<pre><code>## # A tibble: 5 x 8
+##   term  estimate std.error statistic p.value conf.low conf.high coefficient_type
+##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;           
+## 1 bmic~    0.686     0.180    -2.09  3.64e-2    0.481     0.976 beta            
+## 2 bmic~    0.459     0.175    -4.46  8.38e-6    0.326     0.646 beta            
+## 3 bmic~    0.543     0.176    -3.47  5.18e-4    0.384     0.766 beta            
+## 4 Targ~    1.02      0.171     0.138 8.90e-1   NA        NA     alpha           
+## 5 Targ~    0.665     0.171    -2.39  1.68e-2   NA        NA     alpha</code></pre>
+<p>Interpretation:</p>
 </div>
-<div id="age" class="section level3">
-<h3>Age</h3>
+<div id="predictor-waist-circumference" class="section level3">
+<h3>Predictor: Waist Circumference</h3>
+<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
+<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
+<pre class="r"><code>clm_wc &lt;- clm(HbA1C_Ta ~ wc, data = anads1)
+summary(clm_wc)</code></pre>
+<pre><code>## formula: HbA1C_Ta ~ wc
+## data:    anads1
+## 
+##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
+##  logit flexible  6185 -5713.55 11433.11 5(1)  4.03e-09 1.0e+06
+## 
+## Coefficients:
+##     Estimate Std. Error z value Pr(&gt;|z|)    
+## wc -0.010225   0.002051  -4.985  6.2e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Threshold coefficients:
+##                                        Estimate Std. Error z value
+## Target c (&gt;7.0)|Target b (6.6 - 7.0)    -0.7236     0.1920  -3.769
+## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  -0.2930     0.1918  -1.528</code></pre>
+<pre class="r"><code>tidy(clm_wc, exponentiate = T, conf.int = T)</code></pre>
+<pre><code>## # A tibble: 3 x 8
+##   term  estimate std.error statistic p.value conf.low conf.high coefficient_type
+##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;           
+## 1 Targ~    0.746   0.192       -1.53 1.27e-1   NA        NA     alpha           
+## 2 Targ~    0.485   0.192       -3.77 1.64e-4   NA        NA     alpha           
+## 3 wc       0.990   0.00205     -4.98 6.20e-7    0.986     0.994 beta</code></pre>
+<p>Interpretation:</p>
+</div>
+<div id="predictor-total-cholesterol-level" class="section level3">
+<h3>Predictor: Total Cholesterol Level</h3>
+<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
+<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
+<pre class="r"><code>clm_tc &lt;- clm(HbA1C_Ta ~ tc, data = anads1)
+summary(clm_tc)</code></pre>
+<pre><code>## formula: HbA1C_Ta ~ tc
+## data:    anads1
+## 
+##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
+##  logit flexible  6185 -5673.90 11353.81 5(1)  1.33e-09 9.1e+02
+## 
+## Coefficients:
+##    Estimate Std. Error z value Pr(&gt;|z|)    
+## tc -0.21896    0.02192   -9.99   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Threshold coefficients:
+##                                        Estimate Std. Error z value
+## Target c (&gt;7.0)|Target b (6.6 - 7.0)    -0.8233     0.1074  -7.663
+## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  -0.3879     0.1071  -3.623</code></pre>
+<pre class="r"><code>tidy(clm_tc, exponentiate = T, conf.int = T)</code></pre>
+<pre><code>## # A tibble: 3 x 8
+##   term  estimate std.error statistic  p.value conf.low conf.high
+##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+## 1 Targ~    0.678    0.107      -3.62 2.92e- 4   NA        NA    
+## 2 Targ~    0.439    0.107      -7.66 1.81e-14   NA        NA    
+## 3 tc       0.803    0.0219     -9.99 1.69e-23    0.769     0.838
+## # ... with 1 more variable: coefficient_type &lt;chr&gt;</code></pre>
+<p>Interpretation</p>
+</div>
+<div id="predictor-age" class="section level3">
+<h3>Predictor: Age</h3>
 <pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
 <pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
 <pre class="r"><code>clm_age &lt;- clm(HbA1C_Ta ~ Age, data = anads1)
@@ -1849,7 +1940,7 @@ summary(clm_mod3)</code></pre>
 <h3>Interaction</h3>
 <p>add interaction term between gender and bmi</p>
 <pre class="r"><code>anads1 %&gt;% group_by(gender) %&gt;% descr()</code></pre>
-<pre><code>## Non-numerical variable(s) ignored: HbA1C_Ta, bmic, Dyslipidaemia</code></pre>
+<pre><code>## Non-numerical variable(s) ignored: HbA1C_Ta, ethnic, bmic, Dyslipidaemia</code></pre>
 <pre><code>## Descriptive Statistics  
 ## anads1  
 ## Group: gender = Female  
