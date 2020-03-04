@@ -186,7 +186,8 @@ animplot1 <- ggplot(anads1, aes(x = bmi, y = HbA1c)) +
     ease_aes("cubic-in-out") +
     ggtitle("Now showing {closest_state} years old",
             subtitle = "Frame {frame} of {nframes}")
-animplot1
+animplot1out <- animate(animplot1)
+magick::image_write(animplot1out, path = "myanimplot.gif" )
 ```
 
 
