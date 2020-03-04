@@ -22,7 +22,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(pacman)
-p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate, ordinal, brant)
+p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate, ordinal, brant, kableExtra)
 options(qwraps2_markup = "markdown")
 ```
 
@@ -123,8 +123,11 @@ demo_sum <- list("Age (years)" =
                  "Dyslipidaemia" =
                      list("Yes" = ~ n_perc0(.data$Dyslipidaemia == "yes"),
                           "No" = ~ n_perc0(.data$Dyslipidaemia == "no")))
-demosumtable <- summary_table(anads1, demo_sum)
-print(demosumtable, rtitle = "Demographic Summaries", cnames = c("Mean (SD) / n (%)"))
+
+demosumtable <- print(summary_table(anads1, demo_sum),
+                      rtitle = "Demographic Summaries",
+                      cnames = c("Mean (SD) / n (%)"))
+demosumtable
 ```
 
 
@@ -196,7 +199,11 @@ magick::image_write(animplot1out, path = "myanimplot.gif" )
 
 # Ordinal Logistic Regression
 
+To determine which factors (or predictors) that associated with HbA1c target, ordinal logistic regression (cumulative logit model) will be use. The factors include BMI, waist circumference, total cholesterol level, dyslipidaemia status, gender and age.
+
 ## Univariable
+
+Univariable analysis was done to determine association between each predictor with HbA1c target.
 
 ### Predictor: BMI Category
 
