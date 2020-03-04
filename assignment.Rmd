@@ -190,6 +190,8 @@ animplot1out <- animate(animplot1)
 magick::image_write(animplot1out, path = "myanimplot.gif" )
 ```
 
+![](myanimplot.gif)
+
 
 
 # Ordinal Logistic Regression
@@ -235,14 +237,16 @@ Interpretation
 levels(anads1$HbA1C_Ta)
 clm_age <- clm(HbA1C_Ta ~ Age, data = anads1)
 summary(clm_age)
+tidy(clm_age, exponentiate = T, conf.int = T)
 ```
 
-### gender
+### Predictor: gender
 
 ```{r}
 levels(anads1$HbA1C_Ta)
 clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
 summary(clm_gender)
+tidy(clm_gender, exponentiate = T, conf.int = T)
 ```
 
 ## Multivariable
