@@ -180,12 +180,13 @@ multiplot(age_plot, ht_plot, wt_plot, bmi_plot, wc_plot, hba1c_plot, layout = ma
 animate plot of scatter plot between hba1c and bmi, by age
 
 ```{r, eval = F, warning=F}
-ggplot(anads1, aes(x = bmi, y = HbA1c)) +
+animplot1 <- ggplot(anads1, aes(x = bmi, y = HbA1c)) +
     geom_point(aes(colour = Age)) +
     transition_states(Age, transition_length = 5, state_length = 3) +
     ease_aes("cubic-in-out") +
     ggtitle("Now showing {closest_state} years old",
             subtitle = "Frame {frame} of {nframes}")
+animplot1
 ```
 
 
