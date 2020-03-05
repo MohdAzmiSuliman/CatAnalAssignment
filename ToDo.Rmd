@@ -1,0 +1,11 @@
+---
+title: "Assignment Step"
+author: "Azmi"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+output: pdf_document
+---
+
+Ongoing
+
+- refactor/level gender
+  + if unable, then dont relevel,

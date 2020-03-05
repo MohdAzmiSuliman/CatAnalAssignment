@@ -66,8 +66,7 @@ anads1 <- anads0 %>%
            HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
                                                   "Target c (>7.0)")),
            wt = `Physical Weight`,
-           gender = Sex,
-           ethnic = `Ethnic Group`,
+           gender = ordered(Sex, levels = c("Male", "Female")),
            dmage = `Diabetes Age`,
            ht = `Physical Height`,
            wc = `Physical Waist circumference`,
@@ -203,61 +202,95 @@ To determine which factors (or predictors) that associated with HbA1c target, or
 
 ## Univariable
 
-Univariable analysis was done to determine association between each predictor with HbA1c target.
+Univariable analysis was done to determine association between each predictor with HbA1c target.levels(anads1$HbA1C_Ta)
+
+```{r}
+levels(anads1$HbA1C_Ta)
+```
 
 ### Predictor: BMI Category
 
 ```{r}
-levels(anads1$HbA1C_Ta)
+levels(anads1$bmic)
 clm_bmic <- clm(HbA1C_Ta ~ bmic, data = anads1)
-summary(clm_bmic)
-tidy(clm_bmic, exponentiate = T, conf.int = T)
+kable(tidy(clm_bmic, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-
+&nbsp;
 Interpretation: 
 
-1. As compared to low bmi, normal BMI, overweight and obese associates with higehr category of HbA1c target
-2. The odd ratio of 
+1. As compared to low bmi, normal BMI, overweight and obese associates with higher category of HbA1c target group.
+2. The odd of normal BMI being in category of target HbA1c $\leqslant$ 6.5 or above is `r round(exp(coef(clm_bmic)[3]), 2)` higher (95% CI: 1.02, 2.08, p = 0.036) than an underweight BMI.
+3. The odd of overweight being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[4]), 2)` higher (95% CI: 1.55, 3.08, p = 0.036) than an underweight BMI. 
+4. The odd of obese being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[5]), 2)` higher (95% CI: 1.55, 3.08, p = 0.036) than an underweight BMI. 
 
 ### Predictor: Waist Circumference
 
 ```{r}
 levels(anads1$HbA1C_Ta)
 clm_wc <- clm(HbA1C_Ta ~ wc, data = anads1)
-summary(clm_wc)
-tidy(clm_wc, exponentiate = T, conf.int = T)
+kable(tidy(clm_wc, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-
+&nbsp;
 Interpretation: 
+
+1. Higher waist circumference associates with higher category of HbA1c target group.
+2. For each increase of 1 cm of waist circumference, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_wc)[3], 4)`, which correspond increase of odd of `r round(exp(coef(clm_wc)[3]), 4)` times higher.
+3. For each increase of 10 cm of waist circumference, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_wc)[3]*10, 4)`, which correspond increase of odd of `r round(exp(coef(clm_wc)[3]*10), 3)` times higher
+
 
 ### Predictor: Total Cholesterol Level
 
 ```{r}
-levels(anads1$HbA1C_Ta)
 clm_tc <- clm(HbA1C_Ta ~ tc, data = anads1)
-summary(clm_tc)
-tidy(clm_tc, exponentiate = T, conf.int = T)
+kable(tidy(clm_tc, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
+&nbsp;
+Interpretation: 
 
-Interpretation
+1. Higher total cholesterol level associates with higher category of HbA1c target group.
+2. For each increase of 1 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_tc)[3], 2)`, which correspond increase of odd of `r round(exp(coef(clm_tc)[3]), 2)` times higher.
+3. For each increase of 10 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_tc)[3]*10, 2)`, which correspond increase of odd of `r round(exp(coef(clm_tc)[3]*10), 2)` times higher
+
 
 ### Predictor: Age
 
 ```{r}
-levels(anads1$HbA1C_Ta)
 clm_age <- clm(HbA1C_Ta ~ Age, data = anads1)
-summary(clm_age)
-tidy(clm_age, exponentiate = T, conf.int = T)
+kable(tidy(clm_age, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
+&nbsp;
+Interpretation: 
 
-### Predictor: gender
+1. Higher age associates with lower category of HbA1c target group.
+2. For each increase of 1 year of age, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_age)[3], 2)`, which correspond to odd of `r round(exp(coef(clm_age)[3]), 2)` times.
+3. For each increase of 10 year of age, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_age)[3]*10, 2)`, which correspond to odd of `r round(exp(coef(clm_age)[3]*10), 2)` times.
+
+
+### Predictor: Gender
 
 ```{r}
-levels(anads1$HbA1C_Ta)
+levels(anads1$gender)
 clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
-summary(clm_gender)
-tidy(clm_gender, exponentiate = T, conf.int = T)
+kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
+&nbsp;
+Interpretation: 
+
+1. Gender had no association with higher category of HbA1c target group.
+
+### Predictor: Dyslipidaemia Status
+
+```{r}
+str(anads1$Dyslipidaemia)
+clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
+kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
+```
+&nbsp;
+Interpretation: 
+
+1. Gender had no association with higher category of HbA1c target group.
+
+
 
 ## Multivariable
 

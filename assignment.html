@@ -1524,14 +1524,8 @@ div.tocify {
 <div id="environment" class="section level2">
 <h2>Environment</h2>
 <pre class="r"><code>library(pacman)
-p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate, ordinal, brant, kableExtra)</code></pre>
-<pre><code>## Installing package into '/home/bemi/R/x86_64-pc-linux-gnu-library/3.6'
-## (as 'lib' is unspecified)</code></pre>
-<pre><code>## Warning in utils::install.packages(package, ...): installation of package
-## 'tidyverse' had non-zero exit status</code></pre>
-<pre><code>## 
-## tidyverse installed</code></pre>
-<pre class="r"><code>options(qwraps2_markup = &quot;markdown&quot;)</code></pre>
+p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate, ordinal, brant, kableExtra)
+options(qwraps2_markup = &quot;markdown&quot;)</code></pre>
 </div>
 <div id="dataset-data-wrangling" class="section level2">
 <h2>Dataset &amp; Data Wrangling</h2>
@@ -1574,12 +1568,13 @@ head(anads0)</code></pre>
     mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
                          labels = c(&quot;Target a (&lt;= 6.5)&quot;, &quot;Target b (6.6 - 7.0)&quot;,
                                     &quot;Target c (&gt;7.0)&quot;)),
-           HbA1C_Ta = fct_relevel(HbA1C_T, c(&quot;Target c (&gt;7.0)&quot;, &quot;Target b (6.6 - 7.0)&quot;,
-                                             &quot;Target a (&lt;= 6.5)&quot;)),
-           HbA1C_Ta = ordered(HbA1C_Ta, levels = c(&quot;Target c (&gt;7.0)&quot;, &quot;Target b (6.6 - 7.0)&quot;,
-                                                   &quot;Target a (&lt;= 6.5)&quot;)),
+           HbA1C_Ta = fct_relevel(HbA1C_T, c(&quot;Target a (&lt;= 6.5)&quot;, &quot;Target b (6.6 - 7.0)&quot;,
+                                             &quot;Target c (&gt;7.0)&quot;)),
+           HbA1C_Ta = ordered(HbA1C_Ta, levels = c(&quot;Target a (&lt;= 6.5)&quot;, &quot;Target b (6.6 - 7.0)&quot;,
+                                                  &quot;Target c (&gt;7.0)&quot;)),
            wt = `Physical Weight`,
-           gender = Sex,
+           gender = fct_relevel(Sex, c(&quot;Male&quot;, &quot;Female&quot;)),
+           gender = ordered(gender, levels = c(&quot;Male&quot;, &quot;Female&quot;)),
            ethnic = `Ethnic Group`,
            dmage = `Diabetes Age`,
            ht = `Physical Height`,
@@ -1602,7 +1597,7 @@ head(anads0)</code></pre>
 head(anads1)</code></pre>
 <pre><code>## # A tibble: 6 x 14
 ##   HbA1c HbA1C_Ta   Age gender ethnic ethniccol2 dmage    ht    wt   bmi bmic 
-##   &lt;dbl&gt; &lt;ord&gt;    &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;  &lt;ord&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;
+##   &lt;dbl&gt; &lt;ord&gt;    &lt;dbl&gt; &lt;ord&gt;  &lt;chr&gt;  &lt;ord&gt;      &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;fct&gt;
 ## 1   7   Target …    90 Female Malay  malay         83   152  49    21.2 norm…
 ## 2   7.5 Target …    80 Male   Chine… chinese       72   163  69    26.0 over…
 ## 3   7.7 Target …    80 Male   Malay  malay         72   159  69.5  27.5 obese
@@ -1639,19 +1634,19 @@ head(anads1)</code></pre>
 ## 
 ##                              Freq   % Valid   % Valid Cum.   % Total   % Total Cum.
 ## -------------------------- ------ --------- -------------- --------- --------------
-##            Target c (&gt;7.0)   3441     55.63          55.63     55.63          55.63
-##       Target b (6.6 - 7.0)    630     10.19          65.82     10.19          65.82
-##          Target a (&lt;= 6.5)   2114     34.18         100.00     34.18         100.00
+##          Target a (&lt;= 6.5)   2114     34.18          34.18     34.18          34.18
+##       Target b (6.6 - 7.0)    630     10.19          44.37     10.19          44.37
+##            Target c (&gt;7.0)   3441     55.63         100.00     55.63         100.00
 ##                       &lt;NA&gt;      0                               0.00         100.00
 ##                      Total   6185    100.00         100.00    100.00         100.00
 ## 
 ## anads1$gender  
-## Type: Character  
+## Type: Ordered Factor  
 ## 
 ##                Freq   % Valid   % Valid Cum.   % Total   % Total Cum.
 ## ------------ ------ --------- -------------- --------- --------------
-##       Female   3812     61.63          61.63     61.63          61.63
-##         Male   2373     38.37         100.00     38.37         100.00
+##         Male   2373     38.37          38.37     38.37          38.37
+##       Female   3812     61.63         100.00     61.63         100.00
 ##         &lt;NA&gt;      0                               0.00         100.00
 ##        Total   6185    100.00         100.00    100.00         100.00
 ## 
@@ -1832,164 +1827,791 @@ magick::image_write(animplot1out, path = &quot;myanimplot.gif&quot; )</code></pr
 <p>To determine which factors (or predictors) that associated with HbA1c target, ordinal logistic regression (cumulative logit model) will be use. The factors include BMI, waist circumference, total cholesterol level, dyslipidaemia status, gender and age.</p>
 <div id="univariable" class="section level2">
 <h2>Univariable</h2>
-<p>Univariable analysis was done to determine association between each predictor with HbA1c target.</p>
+<p>Univariable analysis was done to determine association between each predictor with HbA1c target.levels(anads1$HbA1C_Ta)</p>
+<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
+<pre><code>## [1] &quot;Target a (&lt;= 6.5)&quot;    &quot;Target b (6.6 - 7.0)&quot; &quot;Target c (&gt;7.0)&quot;</code></pre>
 <div id="predictor-bmi-category" class="section level3">
 <h3>Predictor: BMI Category</h3>
-<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
-<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
+<pre class="r"><code>levels(anads1$bmic)</code></pre>
+<pre><code>## [1] &quot;underweight&quot; &quot;normal&quot;      &quot;overweight&quot;  &quot;obese&quot;</code></pre>
 <pre class="r"><code>clm_bmic &lt;- clm(HbA1C_Ta ~ bmic, data = anads1)
-summary(clm_bmic)</code></pre>
-<pre><code>## formula: HbA1C_Ta ~ bmic
-## data:    anads1
-## 
-##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5701.75 11413.50 5(1)  2.90e-09 1.1e+03
-## 
-## Coefficients:
-##                Estimate Std. Error z value Pr(&gt;|z|)    
-## bmicnormal      -0.3773     0.1803  -2.093 0.036372 *  
-## bmicoverweight  -0.6108     0.1760  -3.471 0.000518 ***
-## bmicobese       -0.7778     0.1746  -4.455 8.38e-06 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Threshold coefficients:
-##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)   -0.40855    0.17087  -2.391
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  0.02355    0.17079   0.138</code></pre>
-<pre class="r"><code>tidy(clm_bmic, exponentiate = T, conf.int = T)</code></pre>
-<pre><code>## # A tibble: 5 x 8
-##   term  estimate std.error statistic p.value conf.low conf.high coefficient_type
-##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;           
-## 1 bmic…    0.686     0.180    -2.09  3.64e-2    0.481     0.976 beta            
-## 2 bmic…    0.459     0.175    -4.46  8.38e-6    0.326     0.646 beta            
-## 3 bmic…    0.543     0.176    -3.47  5.18e-4    0.384     0.766 beta            
-## 4 Targ…    1.02      0.171     0.138 8.90e-1   NA        NA     alpha           
-## 5 Targ…    0.665     0.171    -2.39  1.68e-2   NA        NA     alpha</code></pre>
-<p>Interpretation:</p>
+kable(tidy(clm_bmic, exponentiate = T, conf.int = T), digits = 3, align = &quot;lccccccc&quot;)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:center;">
+estimate
+</th>
+<th style="text-align:center;">
+std.error
+</th>
+<th style="text-align:center;">
+statistic
+</th>
+<th style="text-align:center;">
+p.value
+</th>
+<th style="text-align:center;">
+conf.low
+</th>
+<th style="text-align:center;">
+conf.high
+</th>
+<th style="text-align:center;">
+coefficient_type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+bmicnormal
+</td>
+<td style="text-align:center;">
+1.458
+</td>
+<td style="text-align:center;">
+0.180
+</td>
+<td style="text-align:center;">
+2.093
+</td>
+<td style="text-align:center;">
+0.036
+</td>
+<td style="text-align:center;">
+1.025
+</td>
+<td style="text-align:center;">
+2.081
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+bmicobese
+</td>
+<td style="text-align:center;">
+2.177
+</td>
+<td style="text-align:center;">
+0.175
+</td>
+<td style="text-align:center;">
+4.455
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+1.547
+</td>
+<td style="text-align:center;">
+3.071
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+bmicoverweight
+</td>
+<td style="text-align:center;">
+1.842
+</td>
+<td style="text-align:center;">
+0.176
+</td>
+<td style="text-align:center;">
+3.471
+</td>
+<td style="text-align:center;">
+0.001
+</td>
+<td style="text-align:center;">
+1.306
+</td>
+<td style="text-align:center;">
+2.606
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target a (&lt;= 6.5)|Target b (6.6 - 7.0)
+</td>
+<td style="text-align:center;">
+0.977
+</td>
+<td style="text-align:center;">
+0.171
+</td>
+<td style="text-align:center;">
+-0.138
+</td>
+<td style="text-align:center;">
+0.890
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target b (6.6 - 7.0)|Target c (&gt;7.0)
+</td>
+<td style="text-align:center;">
+1.505
+</td>
+<td style="text-align:center;">
+0.171
+</td>
+<td style="text-align:center;">
+2.391
+</td>
+<td style="text-align:center;">
+0.017
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+</tbody>
+</table>
+<p>  Interpretation:</p>
+<ol style="list-style-type: decimal">
+<li>As compared to low bmi, normal BMI, overweight and obese associates with higher category of HbA1c target group.</li>
+<li>The odd of normal BMI being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above is 1.46 higher (95% CI: 1.02, 2.08, p = 0.036) than an underweight BMI.</li>
+<li>The odd of overweight being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above is 1.84 higher (95% CI: 1.55, 3.08, p = 0.036) than an underweight BMI.</li>
+<li>The odd of obese being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above is 2.18 higher (95% CI: 1.55, 3.08, p = 0.036) than an underweight BMI.</li>
+</ol>
 </div>
 <div id="predictor-waist-circumference" class="section level3">
 <h3>Predictor: Waist Circumference</h3>
 <pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
-<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
+<pre><code>## [1] &quot;Target a (&lt;= 6.5)&quot;    &quot;Target b (6.6 - 7.0)&quot; &quot;Target c (&gt;7.0)&quot;</code></pre>
 <pre class="r"><code>clm_wc &lt;- clm(HbA1C_Ta ~ wc, data = anads1)
-summary(clm_wc)</code></pre>
-<pre><code>## formula: HbA1C_Ta ~ wc
-## data:    anads1
-## 
-##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5713.55 11433.11 5(1)  4.03e-09 1.0e+06
-## 
-## Coefficients:
-##     Estimate Std. Error z value Pr(&gt;|z|)    
-## wc -0.010225   0.002051  -4.985  6.2e-07 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Threshold coefficients:
-##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)    -0.7236     0.1920  -3.769
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  -0.2930     0.1918  -1.528</code></pre>
-<pre class="r"><code>tidy(clm_wc, exponentiate = T, conf.int = T)</code></pre>
-<pre><code>## # A tibble: 3 x 8
-##   term  estimate std.error statistic p.value conf.low conf.high coefficient_type
-##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;   &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt; &lt;chr&gt;           
-## 1 Targ…    0.746   0.192       -1.53 1.27e-1   NA        NA     alpha           
-## 2 Targ…    0.485   0.192       -3.77 1.64e-4   NA        NA     alpha           
-## 3 wc       0.990   0.00205     -4.98 6.20e-7    0.986     0.994 beta</code></pre>
-<p>Interpretation:</p>
+kable(tidy(clm_wc, exponentiate = T, conf.int = T), digits = 3, align = &quot;lccccccc&quot;)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:center;">
+estimate
+</th>
+<th style="text-align:center;">
+std.error
+</th>
+<th style="text-align:center;">
+statistic
+</th>
+<th style="text-align:center;">
+p.value
+</th>
+<th style="text-align:center;">
+conf.low
+</th>
+<th style="text-align:center;">
+conf.high
+</th>
+<th style="text-align:center;">
+coefficient_type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Target a (&lt;= 6.5)|Target b (6.6 - 7.0)
+</td>
+<td style="text-align:center;">
+1.341
+</td>
+<td style="text-align:center;">
+0.192
+</td>
+<td style="text-align:center;">
+1.528
+</td>
+<td style="text-align:center;">
+0.127
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target b (6.6 - 7.0)|Target c (&gt;7.0)
+</td>
+<td style="text-align:center;">
+2.062
+</td>
+<td style="text-align:center;">
+0.192
+</td>
+<td style="text-align:center;">
+3.769
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+wc
+</td>
+<td style="text-align:center;">
+1.010
+</td>
+<td style="text-align:center;">
+0.002
+</td>
+<td style="text-align:center;">
+4.985
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+1.006
+</td>
+<td style="text-align:center;">
+1.014
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+</tbody>
+</table>
+<p>  Interpretation:</p>
+<ol style="list-style-type: decimal">
+<li>Higher waist circumference associates with higher category of HbA1c target group.</li>
+<li>For each increase of 1 cm of waist circumference, the log odds of being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above was 0.0102, which correspond increase of odd of 1.0103 times higher.</li>
+<li>For each increase of 10 cm of waist circumference, the log odds of being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above was 0.1022, which correspond increase of odd of 1.108 times higher</li>
+</ol>
 </div>
 <div id="predictor-total-cholesterol-level" class="section level3">
 <h3>Predictor: Total Cholesterol Level</h3>
-<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
-<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
 <pre class="r"><code>clm_tc &lt;- clm(HbA1C_Ta ~ tc, data = anads1)
-summary(clm_tc)</code></pre>
-<pre><code>## formula: HbA1C_Ta ~ tc
-## data:    anads1
-## 
-##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5673.90 11353.81 5(1)  1.33e-09 9.1e+02
-## 
-## Coefficients:
-##    Estimate Std. Error z value Pr(&gt;|z|)    
-## tc -0.21896    0.02192   -9.99   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Threshold coefficients:
-##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)    -0.8233     0.1074  -7.663
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  -0.3879     0.1071  -3.623</code></pre>
-<pre class="r"><code>tidy(clm_tc, exponentiate = T, conf.int = T)</code></pre>
-<pre><code>## # A tibble: 3 x 8
-##   term  estimate std.error statistic  p.value conf.low conf.high
-##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-## 1 Targ…    0.678    0.107      -3.62 2.92e- 4   NA        NA    
-## 2 Targ…    0.439    0.107      -7.66 1.81e-14   NA        NA    
-## 3 tc       0.803    0.0219     -9.99 1.69e-23    0.769     0.838
-## # … with 1 more variable: coefficient_type &lt;chr&gt;</code></pre>
-<p>Interpretation</p>
+kable(tidy(clm_tc, exponentiate = T, conf.int = T), digits = 3, align = &quot;lccccccc&quot;)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:center;">
+estimate
+</th>
+<th style="text-align:center;">
+std.error
+</th>
+<th style="text-align:center;">
+statistic
+</th>
+<th style="text-align:center;">
+p.value
+</th>
+<th style="text-align:center;">
+conf.low
+</th>
+<th style="text-align:center;">
+conf.high
+</th>
+<th style="text-align:center;">
+coefficient_type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Target a (&lt;= 6.5)|Target b (6.6 - 7.0)
+</td>
+<td style="text-align:center;">
+1.474
+</td>
+<td style="text-align:center;">
+0.107
+</td>
+<td style="text-align:center;">
+3.623
+</td>
+<td style="text-align:center;">
+0
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target b (6.6 - 7.0)|Target c (&gt;7.0)
+</td>
+<td style="text-align:center;">
+2.278
+</td>
+<td style="text-align:center;">
+0.107
+</td>
+<td style="text-align:center;">
+7.663
+</td>
+<td style="text-align:center;">
+0
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+tc
+</td>
+<td style="text-align:center;">
+1.245
+</td>
+<td style="text-align:center;">
+0.022
+</td>
+<td style="text-align:center;">
+9.990
+</td>
+<td style="text-align:center;">
+0
+</td>
+<td style="text-align:center;">
+1.193
+</td>
+<td style="text-align:center;">
+1.3
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+</tbody>
+</table>
+<p>  Interpretation:</p>
+<ol style="list-style-type: decimal">
+<li>Higher total cholesterol level associates with higher category of HbA1c target group.</li>
+<li>For each increase of 1 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above was 0.22, which correspond increase of odd of 1.24 times higher.</li>
+<li>For each increase of 10 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above was 2.19, which correspond increase of odd of 8.93 times higher</li>
+</ol>
 </div>
 <div id="predictor-age" class="section level3">
 <h3>Predictor: Age</h3>
-<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
-<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
 <pre class="r"><code>clm_age &lt;- clm(HbA1C_Ta ~ Age, data = anads1)
-summary(clm_age)</code></pre>
-<pre><code>## formula: HbA1C_Ta ~ Age
-## data:    anads1
-## 
-##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5622.30 11250.60 5(1)  3.37e-10 3.1e+05
-## 
-## Coefficients:
-##     Estimate Std. Error z value Pr(&gt;|z|)    
-## Age 0.033199   0.002361   14.06   &lt;2e-16 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Threshold coefficients:
-##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     2.3340     0.1530   15.25
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   2.7762     0.1543   18.00</code></pre>
-<pre class="r"><code>tidy(clm_age, exponentiate = T, conf.int = T)</code></pre>
-<pre><code>## # A tibble: 3 x 8
-##   term  estimate std.error statistic  p.value conf.low conf.high
-##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-## 1 Age       1.03   0.00236      14.1 6.40e-45     1.03      1.04
-## 2 Targ…    16.1    0.154        18.0 2.02e-72    NA        NA   
-## 3 Targ…    10.3    0.153        15.3 1.64e-52    NA        NA   
-## # … with 1 more variable: coefficient_type &lt;chr&gt;</code></pre>
+kable(tidy(clm_age, exponentiate = T, conf.int = T), digits = 3, align = &quot;lccccccc&quot;)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:center;">
+estimate
+</th>
+<th style="text-align:center;">
+std.error
+</th>
+<th style="text-align:center;">
+statistic
+</th>
+<th style="text-align:center;">
+p.value
+</th>
+<th style="text-align:center;">
+conf.low
+</th>
+<th style="text-align:center;">
+conf.high
+</th>
+<th style="text-align:center;">
+coefficient_type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Age
+</td>
+<td style="text-align:center;">
+0.967
+</td>
+<td style="text-align:center;">
+0.002
+</td>
+<td style="text-align:center;">
+-14.063
+</td>
+<td style="text-align:center;">
+0
+</td>
+<td style="text-align:center;">
+0.963
+</td>
+<td style="text-align:center;">
+0.972
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target a (&lt;= 6.5)|Target b (6.6 - 7.0)
+</td>
+<td style="text-align:center;">
+0.062
+</td>
+<td style="text-align:center;">
+0.154
+</td>
+<td style="text-align:center;">
+-17.998
+</td>
+<td style="text-align:center;">
+0
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target b (6.6 - 7.0)|Target c (&gt;7.0)
+</td>
+<td style="text-align:center;">
+0.097
+</td>
+<td style="text-align:center;">
+0.153
+</td>
+<td style="text-align:center;">
+-15.250
+</td>
+<td style="text-align:center;">
+0
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+</tbody>
+</table>
+<p>  Interpretation:</p>
+<ol style="list-style-type: decimal">
+<li>Higher age associates with lower category of HbA1c target group.</li>
+<li>For each increase of 1 year of age, the log odds of being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above was -0.03, which correspond to odd of 0.97 times.</li>
+<li>For each increase of 10 year of age, the log odds of being in category of target HbA1c <span class="math inline">\(\leqslant\)</span> 6.5 or above was -0.33, which correspond to odd of 0.72 times.</li>
+</ol>
 </div>
 <div id="predictor-gender" class="section level3">
-<h3>Predictor: gender</h3>
-<pre class="r"><code>levels(anads1$HbA1C_Ta)</code></pre>
-<pre><code>## [1] &quot;Target c (&gt;7.0)&quot;      &quot;Target b (6.6 - 7.0)&quot; &quot;Target a (&lt;= 6.5)&quot;</code></pre>
+<h3>Predictor: Gender</h3>
+<pre class="r"><code>levels(anads1$gender)</code></pre>
+<pre><code>## [1] &quot;Male&quot;   &quot;Female&quot;</code></pre>
 <pre class="r"><code>clm_gender &lt;- clm(HbA1C_Ta ~ gender, data = anads1)
-summary(clm_gender)</code></pre>
-<pre><code>## formula: HbA1C_Ta ~ gender
-## data:    anads1
-## 
-##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5725.39 11456.78 5(1)  5.67e-09 2.8e+01
-## 
-## Coefficients:
-##            Estimate Std. Error z value Pr(&gt;|z|)
-## genderMale -0.06413    0.05109  -1.255    0.209
-## 
-## Threshold coefficients:
-##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)    0.20167    0.03223   6.257
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)  0.63073    0.03315  19.026</code></pre>
-<pre class="r"><code>tidy(clm_gender, exponentiate = T, conf.int = T)</code></pre>
-<pre><code>## # A tibble: 3 x 8
-##   term  estimate std.error statistic  p.value conf.low conf.high
-##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-## 1 gend…    0.938    0.0511     -1.26 2.09e- 1    0.848      1.04
-## 2 Targ…    1.88     0.0332     19.0  1.04e-80   NA         NA   
-## 3 Targ…    1.22     0.0322      6.26 3.92e-10   NA         NA   
-## # … with 1 more variable: coefficient_type &lt;chr&gt;</code></pre>
+kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = &quot;lccccccc&quot;)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:center;">
+estimate
+</th>
+<th style="text-align:center;">
+std.error
+</th>
+<th style="text-align:center;">
+statistic
+</th>
+<th style="text-align:center;">
+p.value
+</th>
+<th style="text-align:center;">
+conf.low
+</th>
+<th style="text-align:center;">
+conf.high
+</th>
+<th style="text-align:center;">
+coefficient_type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+gender.L
+</td>
+<td style="text-align:center;">
+0.956
+</td>
+<td style="text-align:center;">
+0.036
+</td>
+<td style="text-align:center;">
+-1.255
+</td>
+<td style="text-align:center;">
+0.209
+</td>
+<td style="text-align:center;">
+0.89
+</td>
+<td style="text-align:center;">
+1.026
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target a (&lt;= 6.5)|Target b (6.6 - 7.0)
+</td>
+<td style="text-align:center;">
+0.515
+</td>
+<td style="text-align:center;">
+0.027
+</td>
+<td style="text-align:center;">
+-24.116
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target b (6.6 - 7.0)|Target c (&gt;7.0)
+</td>
+<td style="text-align:center;">
+0.792
+</td>
+<td style="text-align:center;">
+0.026
+</td>
+<td style="text-align:center;">
+-8.894
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+</tbody>
+</table>
+<p>  Interpretation:</p>
+<ol style="list-style-type: decimal">
+<li>Gender had no association with higher category of HbA1c target group.</li>
+</ol>
+</div>
+<div id="predictor-dyslipidaemia-status" class="section level3">
+<h3>Predictor: Dyslipidaemia Status</h3>
+<pre class="r"><code>str(anads1$Dyslipidaemia)</code></pre>
+<pre><code>##  chr [1:6185] &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; &quot;yes&quot; ...</code></pre>
+<pre class="r"><code>clm_gender &lt;- clm(HbA1C_Ta ~ gender, data = anads1)
+kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = &quot;lccccccc&quot;)</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+term
+</th>
+<th style="text-align:center;">
+estimate
+</th>
+<th style="text-align:center;">
+std.error
+</th>
+<th style="text-align:center;">
+statistic
+</th>
+<th style="text-align:center;">
+p.value
+</th>
+<th style="text-align:center;">
+conf.low
+</th>
+<th style="text-align:center;">
+conf.high
+</th>
+<th style="text-align:center;">
+coefficient_type
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+gender.L
+</td>
+<td style="text-align:center;">
+0.956
+</td>
+<td style="text-align:center;">
+0.036
+</td>
+<td style="text-align:center;">
+-1.255
+</td>
+<td style="text-align:center;">
+0.209
+</td>
+<td style="text-align:center;">
+0.89
+</td>
+<td style="text-align:center;">
+1.026
+</td>
+<td style="text-align:center;">
+beta
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target a (&lt;= 6.5)|Target b (6.6 - 7.0)
+</td>
+<td style="text-align:center;">
+0.515
+</td>
+<td style="text-align:center;">
+0.027
+</td>
+<td style="text-align:center;">
+-24.116
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Target b (6.6 - 7.0)|Target c (&gt;7.0)
+</td>
+<td style="text-align:center;">
+0.792
+</td>
+<td style="text-align:center;">
+0.026
+</td>
+<td style="text-align:center;">
+-8.894
+</td>
+<td style="text-align:center;">
+0.000
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+NA
+</td>
+<td style="text-align:center;">
+alpha
+</td>
+</tr>
+</tbody>
+</table>
+<p>  Interpretation:</p>
+<ol style="list-style-type: decimal">
+<li>Gender had no association with higher category of HbA1c target group.</li>
+</ol>
 </div>
 </div>
 <div id="multivariable" class="section level2">
@@ -2001,25 +2623,25 @@ summary(clm_mod1)</code></pre>
 ## data:    anads1
 ## 
 ##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5565.74 11151.47 5(1)  8.08e-11 5.0e+06
+##  logit flexible  6185 -5565.74 11151.47 5(1)  7.91e-11 5.1e+06
 ## 
 ## Coefficients:
 ##                   Estimate Std. Error z value Pr(&gt;|z|)    
-## bmicnormal       -0.335898   0.184616  -1.819  0.06884 .  
-## bmicoverweight   -0.456703   0.182599  -2.501  0.01238 *  
-## bmicobese        -0.484367   0.187393  -2.585  0.00974 ** 
-## wc               -0.004242   0.002513  -1.688  0.09144 .  
-## tc               -0.200103   0.022383  -8.940  &lt; 2e-16 ***
-## Dyslipidaemiayes -0.168874   0.060625  -2.786  0.00534 ** 
-## genderMale       -0.132686   0.053399  -2.485  0.01296 *  
-## Age               0.030051   0.002456  12.238  &lt; 2e-16 ***
+## bmicnormal        0.335898   0.184616   1.819  0.06884 .  
+## bmicoverweight    0.456703   0.182599   2.501  0.01238 *  
+## bmicobese         0.484367   0.187393   2.585  0.00974 ** 
+## wc                0.004242   0.002513   1.688  0.09144 .  
+## tc                0.200103   0.022383   8.940  &lt; 2e-16 ***
+## Dyslipidaemiayes  0.168874   0.060625   2.786  0.00534 ** 
+## gender.L         -0.093823   0.037759  -2.485  0.01296 *  
+## Age              -0.030051   0.002456 -12.238  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Threshold coefficients:
 ##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     0.1601     0.3359   0.476
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   0.6095     0.3360   1.814</code></pre>
+## Target a (&lt;= 6.5)|Target b (6.6 - 7.0)  -0.6759     0.3376  -2.002
+## Target b (6.6 - 7.0)|Target c (&gt;7.0)    -0.2264     0.3375  -0.671</code></pre>
 <p>Model 2 - remove wc</p>
 <pre class="r"><code>clm_mod2 &lt;- clm(HbA1C_Ta ~ bmic + tc + Dyslipidaemia + gender + Age, data = anads1)
 summary(clm_mod2)</code></pre>
@@ -2027,24 +2649,24 @@ summary(clm_mod2)</code></pre>
 ## data:    anads1
 ## 
 ##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5567.17 11152.33 5(1)  6.57e-11 1.3e+06
+##  logit flexible  6185 -5567.17 11152.33 5(1)  6.51e-11 1.3e+06
 ## 
 ## Coefficients:
 ##                   Estimate Std. Error z value Pr(&gt;|z|)    
-## bmicnormal       -0.361978   0.183910  -1.968  0.04904 *  
-## bmicoverweight   -0.509819   0.179813  -2.835  0.00458 ** 
-## bmicobese        -0.578916   0.178808  -3.238  0.00121 ** 
-## tc               -0.198329   0.022348  -8.875  &lt; 2e-16 ***
-## Dyslipidaemiayes -0.169810   0.060605  -2.802  0.00508 ** 
-## genderMale       -0.147673   0.052652  -2.805  0.00504 ** 
-## Age               0.030104   0.002455  12.261  &lt; 2e-16 ***
+## bmicnormal        0.361978   0.183910   1.968  0.04904 *  
+## bmicoverweight    0.509819   0.179813   2.835  0.00458 ** 
+## bmicobese         0.578916   0.178808   3.238  0.00121 ** 
+## tc                0.198329   0.022348   8.875  &lt; 2e-16 ***
+## Dyslipidaemiayes  0.169810   0.060605   2.802  0.00508 ** 
+## gender.L         -0.104421   0.037230  -2.805  0.00504 ** 
+## Age              -0.030104   0.002455 -12.261  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Threshold coefficients:
 ##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     0.4930     0.2720   1.813
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   0.9423     0.2722   3.462</code></pre>
+## Target a (&lt;= 6.5)|Target b (6.6 - 7.0)  -1.0162     0.2709  -3.751
+## Target b (6.6 - 7.0)|Target c (&gt;7.0)    -0.5669     0.2707  -2.094</code></pre>
 <p>model 3 - remove wc &amp; bmicat</p>
 <pre class="r"><code>clm_mod3 &lt;- clm(HbA1C_Ta ~ tc + Dyslipidaemia + gender + Age, data = anads1)
 summary(clm_mod3)</code></pre>
@@ -2052,21 +2674,21 @@ summary(clm_mod3)</code></pre>
 ## data:    anads1
 ## 
 ##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5575.90 11163.81 5(1)  8.45e-11 5.2e+05
+##  logit flexible  6185 -5575.90 11163.81 5(1)  8.42e-11 5.0e+05
 ## 
 ## Coefficients:
 ##                   Estimate Std. Error z value Pr(&gt;|z|)    
-## tc               -0.195644   0.022318  -8.766  &lt; 2e-16 ***
-## Dyslipidaemiayes -0.172788   0.060523  -2.855  0.00430 ** 
-## genderMale       -0.150563   0.052497  -2.868  0.00413 ** 
-## Age               0.032144   0.002394  13.428  &lt; 2e-16 ***
+## tc                0.195644   0.022318   8.766  &lt; 2e-16 ***
+## Dyslipidaemiayes  0.172788   0.060523   2.855  0.00430 ** 
+## gender.L         -0.106464   0.037121  -2.868  0.00413 ** 
+## Age              -0.032144   0.002394 -13.428  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Threshold coefficients:
 ##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     1.1377     0.1971   5.771
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   1.5858     0.1977   8.023</code></pre>
+## Target a (&lt;= 6.5)|Target b (6.6 - 7.0)  -1.6611     0.1953  -8.507
+## Target b (6.6 - 7.0)|Target c (&gt;7.0)    -1.2130     0.1947  -6.230</code></pre>
 <div id="model-comparison" class="section level3">
 <h3>Model comparison</h3>
 <p>done using LR test</p>
@@ -2108,27 +2730,6 @@ summary(clm_mod3)</code></pre>
 <pre><code>## Non-numerical variable(s) ignored: HbA1C_Ta, ethnic, ethniccol2, bmic, Dyslipidaemia</code></pre>
 <pre><code>## Descriptive Statistics  
 ## anads1  
-## Group: gender = Female  
-## N: 3812  
-## 
-##                         Age       bmi     dmage     HbA1c        ht        tc        wc        wt
-## ----------------- --------- --------- --------- --------- --------- --------- --------- ---------
-##              Mean     62.83     27.37     53.83      7.96    153.19      4.94     91.65     64.31
-##           Std.Dev     11.36      5.34     11.00      2.13      6.04      1.22     12.37     13.34
-##               Min     20.00     14.26     17.00      4.00    133.00      1.10     50.00     29.00
-##                Q1     56.00     23.63     47.00      6.30    149.00      4.10     84.00     55.00
-##            Median     63.00     26.84     54.00      7.30    153.00      4.80     91.00     63.00
-##                Q3     71.00     30.33     61.00      9.10    157.00      5.60     98.00     72.00
-##               Max     93.00     71.34     88.00     18.30    198.00     13.90    199.00    150.00
-##               MAD     10.38      4.95     10.38      1.63      5.93      1.04     10.38     11.86
-##               IQR     15.00      6.70     14.00      2.80      8.00      1.50     14.00     17.00
-##                CV      0.18      0.19      0.20      0.27      0.04      0.25      0.13      0.21
-##          Skewness     -0.30      0.88     -0.11      1.12      0.33      1.09      0.80      0.80
-##       SE.Skewness      0.04      0.04      0.04      0.04      0.04      0.04      0.04      0.04
-##          Kurtosis      0.21      2.45      0.03      0.91      1.24      3.09      4.77      1.80
-##           N.Valid   3812.00   3812.00   3812.00   3812.00   3812.00   3812.00   3812.00   3812.00
-##         Pct.Valid    100.00    100.00    100.00    100.00    100.00    100.00    100.00    100.00
-## 
 ## Group: gender = Male  
 ## N: 2373  
 ## 
@@ -2148,32 +2749,53 @@ summary(clm_mod3)</code></pre>
 ##       SE.Skewness      0.05      0.05      0.05      0.05      0.05      0.05      0.05      0.05
 ##          Kurtosis      0.09      2.17     -0.03      1.64      1.86      1.70      5.29      0.87
 ##           N.Valid   2373.00   2373.00   2373.00   2373.00   2373.00   2373.00   2373.00   2373.00
+##         Pct.Valid    100.00    100.00    100.00    100.00    100.00    100.00    100.00    100.00
+## 
+## Group: gender = Female  
+## N: 3812  
+## 
+##                         Age       bmi     dmage     HbA1c        ht        tc        wc        wt
+## ----------------- --------- --------- --------- --------- --------- --------- --------- ---------
+##              Mean     62.83     27.37     53.83      7.96    153.19      4.94     91.65     64.31
+##           Std.Dev     11.36      5.34     11.00      2.13      6.04      1.22     12.37     13.34
+##               Min     20.00     14.26     17.00      4.00    133.00      1.10     50.00     29.00
+##                Q1     56.00     23.63     47.00      6.30    149.00      4.10     84.00     55.00
+##            Median     63.00     26.84     54.00      7.30    153.00      4.80     91.00     63.00
+##                Q3     71.00     30.33     61.00      9.10    157.00      5.60     98.00     72.00
+##               Max     93.00     71.34     88.00     18.30    198.00     13.90    199.00    150.00
+##               MAD     10.38      4.95     10.38      1.63      5.93      1.04     10.38     11.86
+##               IQR     15.00      6.70     14.00      2.80      8.00      1.50     14.00     17.00
+##                CV      0.18      0.19      0.20      0.27      0.04      0.25      0.13      0.21
+##          Skewness     -0.30      0.88     -0.11      1.12      0.33      1.09      0.80      0.80
+##       SE.Skewness      0.04      0.04      0.04      0.04      0.04      0.04      0.04      0.04
+##          Kurtosis      0.21      2.45      0.03      0.91      1.24      3.09      4.77      1.80
+##           N.Valid   3812.00   3812.00   3812.00   3812.00   3812.00   3812.00   3812.00   3812.00
 ##         Pct.Valid    100.00    100.00    100.00    100.00    100.00    100.00    100.00    100.00</code></pre>
 <pre class="r"><code>t.test(anads1$tc ~ anads1$gender)</code></pre>
 <pre><code>## 
 ##  Welch Two Sample t-test
 ## 
 ## data:  anads1$tc by anads1$gender
-## t = 9.6279, df = 5250.1, p-value &lt; 2.2e-16
+## t = -9.6279, df = 5250.1, p-value &lt; 2.2e-16
 ## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
-##  0.2367251 0.3577766
+##  -0.3577766 -0.2367251
 ## sample estimates:
-## mean in group Female   mean in group Male 
-##             4.939349             4.642099</code></pre>
+##   mean in group Male mean in group Female 
+##             4.642099             4.939349</code></pre>
 <pre class="r"><code>ctable(anads1$bmic, anads1$gender)</code></pre>
 <pre><code>## Cross-Tabulation, Row Proportions  
 ## bmic * gender  
 ## Data Frame: anads1  
 ## 
 ## ------------- -------- -------------- -------------- ---------------
-##                 gender         Female           Male           Total
+##                 gender           Male         Female           Total
 ##          bmic                                                       
-##   underweight              95 (73.1%)     35 (26.9%)    130 (100.0%)
-##        normal             672 (62.3%)    407 (37.7%)   1079 (100.0%)
-##    overweight            1193 (57.5%)    881 (42.5%)   2074 (100.0%)
-##         obese            1852 (63.8%)   1050 (36.2%)   2902 (100.0%)
-##         Total            3812 (61.6%)   2373 (38.4%)   6185 (100.0%)
+##   underweight              35 (26.9%)     95 (73.1%)    130 (100.0%)
+##        normal             407 (37.7%)    672 (62.3%)   1079 (100.0%)
+##    overweight             881 (42.5%)   1193 (57.5%)   2074 (100.0%)
+##         obese            1050 (36.2%)   1852 (63.8%)   2902 (100.0%)
+##         Total            2373 (38.4%)   3812 (61.6%)   6185 (100.0%)
 ## ------------- -------- -------------- -------------- ---------------</code></pre>
 <pre class="r"><code>chisq.test(anads1$bmic, anads1$gender)</code></pre>
 <pre><code>## 
@@ -2189,25 +2811,25 @@ summary(clm_mod2ia)</code></pre>
 ## data:    anads1
 ## 
 ##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5567.16 11154.31 5(1)  6.57e-11 1.4e+06
+##  logit flexible  6185 -5567.16 11154.31 5(1)  6.59e-11 1.4e+06
 ## 
 ## Coefficients:
 ##                   Estimate Std. Error z value Pr(&gt;|z|)    
-## bmicnormal       -0.361940   0.183915  -1.968  0.04907 *  
-## bmicoverweight   -0.509952   0.179820  -2.836  0.00457 ** 
-## bmicobese        -0.579083   0.178817  -3.238  0.00120 ** 
-## tc               -0.200632   0.027875  -7.198 6.13e-13 ***
-## Dyslipidaemiayes -0.169721   0.060607  -2.800  0.00510 ** 
-## genderMale       -0.177656   0.222928  -0.797  0.42550    
-## Age               0.030112   0.002456  12.261  &lt; 2e-16 ***
-## tc:genderMale     0.006418   0.046368   0.138  0.88991    
+## bmicnormal        0.361940   0.183915   1.968  0.04907 *  
+## bmicoverweight    0.509952   0.179820   2.836  0.00457 ** 
+## bmicobese         0.579083   0.178817   3.238  0.00120 ** 
+## tc                0.197423   0.023283   8.479  &lt; 2e-16 ***
+## Dyslipidaemiayes  0.169721   0.060607   2.800  0.00510 ** 
+## gender.L         -0.125622   0.157634  -0.797  0.42550    
+## Age              -0.030112   0.002456 -12.261  &lt; 2e-16 ***
+## tc:gender.L       0.004538   0.032787   0.138  0.88991    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Threshold coefficients:
 ##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     0.4822     0.2830   1.704
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   0.9315     0.2832   3.290</code></pre>
+## Target a (&lt;= 6.5)|Target b (6.6 - 7.0)  -1.0204     0.2726  -3.743
+## Target b (6.6 - 7.0)|Target c (&gt;7.0)    -0.5711     0.2724  -2.097</code></pre>
 <pre class="r"><code>anova(clm_mod2, clm_mod2ib)</code></pre>
 <pre><code>## Likelihood ratio tests of cumulative link models:
 ##  
@@ -2226,27 +2848,27 @@ summary(clm_mod2ia)</code></pre>
 ## data:    anads1
 ## 
 ##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5564.22 11152.43 5(1)  6.08e-11 4.7e+06
+##  logit flexible  6185 -5564.22 11152.43 5(1)  6.13e-11 2.6e+06
 ## 
 ## Coefficients:
-##                            Estimate Std. Error z value Pr(&gt;|z|)    
-## bmicnormal                -0.101506   0.218356  -0.465  0.64203    
-## bmicoverweight            -0.243924   0.213355  -1.143  0.25292    
-## bmicobese                 -0.302898   0.211339  -1.433  0.15179    
-## tc                        -0.197955   0.022364  -8.852  &lt; 2e-16 ***
-## Dyslipidaemiayes          -0.169633   0.060657  -2.797  0.00516 ** 
-## genderMale                 0.781872   0.395803   1.975  0.04822 *  
-## Age                        0.030342   0.002459  12.338  &lt; 2e-16 ***
-## bmicnormal:genderMale     -0.924704   0.414223  -2.232  0.02559 *  
-## bmicoverweight:genderMale -0.936388   0.405507  -2.309  0.02093 *  
-## bmicobese:genderMale      -0.963837   0.403445  -2.389  0.01689 *  
+##                          Estimate Std. Error z value Pr(&gt;|z|)    
+## bmicnormal               0.563858   0.207004   2.724 0.006452 ** 
+## bmicoverweight           0.712118   0.202736   3.513 0.000444 ***
+## bmicobese                0.784816   0.202001   3.885 0.000102 ***
+## tc                       0.197955   0.022364   8.852  &lt; 2e-16 ***
+## Dyslipidaemiayes         0.169633   0.060657   2.797 0.005164 ** 
+## gender.L                 0.552867   0.279875   1.975 0.048222 *  
+## Age                     -0.030342   0.002459 -12.338  &lt; 2e-16 ***
+## bmicnormal:gender.L     -0.653865   0.292900  -2.232 0.025590 *  
+## bmicoverweight:gender.L -0.662126   0.286737  -2.309 0.020934 *  
+## bmicobese:gender.L      -0.681536   0.285279  -2.389 0.016894 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Threshold coefficients:
 ##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     0.7732     0.2954   2.617
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   1.2229     0.2956   4.136</code></pre>
+## Target a (&lt;= 6.5)|Target b (6.6 - 7.0)  -0.8319     0.2848  -2.921
+## Target b (6.6 - 7.0)|Target c (&gt;7.0)    -0.3822     0.2846  -1.343</code></pre>
 <pre class="r"><code>anova(clm_mod2, clm_mod2ib)</code></pre>
 <pre><code>## Likelihood ratio tests of cumulative link models:
 ##  
@@ -2272,51 +2894,51 @@ summary(clm_mod2ia)</code></pre>
 ## data:    anads1
 ## 
 ##  link  threshold nobs logLik   AIC      niter max.grad cond.H 
-##  logit flexible  6185 -5567.17 11152.33 5(1)  6.57e-11 1.3e+06
+##  logit flexible  6185 -5567.17 11152.33 5(1)  6.51e-11 1.3e+06
 ## 
 ## Coefficients:
 ##                   Estimate Std. Error z value Pr(&gt;|z|)    
-## bmicnormal       -0.361978   0.183910  -1.968  0.04904 *  
-## bmicoverweight   -0.509819   0.179813  -2.835  0.00458 ** 
-## bmicobese        -0.578916   0.178808  -3.238  0.00121 ** 
-## tc               -0.198329   0.022348  -8.875  &lt; 2e-16 ***
-## Dyslipidaemiayes -0.169810   0.060605  -2.802  0.00508 ** 
-## genderMale       -0.147673   0.052652  -2.805  0.00504 ** 
-## Age               0.030104   0.002455  12.261  &lt; 2e-16 ***
+## bmicnormal        0.361978   0.183910   1.968  0.04904 *  
+## bmicoverweight    0.509819   0.179813   2.835  0.00458 ** 
+## bmicobese         0.578916   0.178808   3.238  0.00121 ** 
+## tc                0.198329   0.022348   8.875  &lt; 2e-16 ***
+## Dyslipidaemiayes  0.169810   0.060605   2.802  0.00508 ** 
+## gender.L         -0.104421   0.037230  -2.805  0.00504 ** 
+## Age              -0.030104   0.002455 -12.261  &lt; 2e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## Threshold coefficients:
 ##                                        Estimate Std. Error z value
-## Target c (&gt;7.0)|Target b (6.6 - 7.0)     0.4930     0.2720   1.813
-## Target b (6.6 - 7.0)|Target a (&lt;= 6.5)   0.9423     0.2722   3.462</code></pre>
+## Target a (&lt;= 6.5)|Target b (6.6 - 7.0)  -1.0162     0.2709  -3.751
+## Target b (6.6 - 7.0)|Target c (&gt;7.0)    -0.5669     0.2707  -2.094</code></pre>
 <pre class="r"><code>tidy(clm_mod2, conf.int = T)</code></pre>
 <pre><code>## # A tibble: 9 x 8
 ##   term  estimate std.error statistic  p.value conf.low conf.high
 ##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-## 1 Age     0.0301   0.00246     12.3  1.48e-34   0.0253   0.0349 
-## 2 bmic…  -0.362    0.184       -1.97 4.90e- 2  -0.724   -0.00230
-## 3 bmic…  -0.579    0.179       -3.24 1.21e- 3  -0.931   -0.229  
-## 4 bmic…  -0.510    0.180       -2.84 4.58e- 3  -0.864   -0.158  
-## 5 Dysl…  -0.170    0.0606      -2.80 5.08e- 3  -0.288   -0.0509 
-## 6 gend…  -0.148    0.0527      -2.80 5.04e- 3  -0.251   -0.0446 
-## 7 Targ…   0.942    0.272        3.46 5.37e- 4  NA       NA      
-## 8 Targ…   0.493    0.272        1.81 6.99e- 2  NA       NA      
-## 9 tc     -0.198    0.0223      -8.87 7.02e-19  -0.242   -0.155  
+## 1 Age    -0.0301   0.00246    -12.3  1.48e-34 -0.0349    -0.0253
+## 2 bmic…   0.362    0.184        1.97 4.90e- 2  0.00230    0.724 
+## 3 bmic…   0.579    0.179        3.24 1.21e- 3  0.229      0.931 
+## 4 bmic…   0.510    0.180        2.84 4.58e- 3  0.158      0.864 
+## 5 Dysl…   0.170    0.0606       2.80 5.08e- 3  0.0509     0.288 
+## 6 gend…  -0.104    0.0372      -2.80 5.04e- 3 -0.177     -0.0315
+## 7 Targ…  -1.02     0.271       -3.75 1.76e- 4 NA         NA     
+## 8 Targ…  -0.567    0.271       -2.09 3.62e- 2 NA         NA     
+## 9 tc      0.198    0.0223       8.87 7.02e-19  0.155      0.242 
 ## # … with 1 more variable: coefficient_type &lt;chr&gt;</code></pre>
 <pre class="r"><code>tidy(clm_mod2, exponentiate = T, conf.int = T)</code></pre>
 <pre><code>## # A tibble: 9 x 8
 ##   term  estimate std.error statistic  p.value conf.low conf.high
 ##   &lt;chr&gt;    &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-## 1 Age      1.03    0.00246     12.3  1.48e-34    1.03      1.04 
-## 2 bmic…    0.696   0.184       -1.97 4.90e- 2    0.485     0.998
-## 3 bmic…    0.561   0.179       -3.24 1.21e- 3    0.394     0.795
-## 4 bmic…    0.601   0.180       -2.84 4.58e- 3    0.421     0.854
-## 5 Dysl…    0.844   0.0606      -2.80 5.08e- 3    0.749     0.950
-## 6 gend…    0.863   0.0527      -2.80 5.04e- 3    0.778     0.956
-## 7 Targ…    2.57    0.272        3.46 5.37e- 4   NA        NA    
-## 8 Targ…    1.64    0.272        1.81 6.99e- 2   NA        NA    
-## 9 tc       0.820   0.0223      -8.87 7.02e-19    0.785     0.857
+## 1 Age      0.970   0.00246    -12.3  1.48e-34    0.966     0.975
+## 2 bmic…    1.44    0.184        1.97 4.90e- 2    1.00      2.06 
+## 3 bmic…    1.78    0.179        3.24 1.21e- 3    1.26      2.54 
+## 4 bmic…    1.66    0.180        2.84 4.58e- 3    1.17      2.37 
+## 5 Dysl…    1.19    0.0606       2.80 5.08e- 3    1.05      1.33 
+## 6 gend…    0.901   0.0372      -2.80 5.04e- 3    0.837     0.969
+## 7 Targ…    0.362   0.271       -3.75 1.76e- 4   NA        NA    
+## 8 Targ…    0.567   0.271       -2.09 3.62e- 2   NA        NA    
+## 9 tc       1.22    0.0223       8.87 7.02e-19    1.17      1.27 
 ## # … with 1 more variable: coefficient_type &lt;chr&gt;</code></pre>
 <pre class="r"><code>result_clmmod2 &lt;- matrix(c(&quot;Variables&quot;, &quot;&quot;, &quot;Coefficient&quot;, &quot;SE&quot;, &quot;p-value&quot;, &quot;OR (95% CI)&quot;,
                            &quot;Intercept 1&quot;, &quot;&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;),ncol=6,byrow=TRUE)
