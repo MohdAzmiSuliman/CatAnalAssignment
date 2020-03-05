@@ -61,10 +61,10 @@ anads1 <- anads0 %>%
     mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
                          labels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
                                     "Target c (>7.0)")),
-           HbA1C_Ta = fct_relevel(HbA1C_T, c("Target c (>7.0)", "Target b (6.6 - 7.0)",
-                                             "Target a (<= 6.5)")),
-           HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target c (>7.0)", "Target b (6.6 - 7.0)",
-                                                   "Target a (<= 6.5)")),
+           HbA1C_Ta = fct_relevel(HbA1C_T, c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
+                                             "Target c (>7.0)")),
+           HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
+                                                  "Target c (>7.0)")),
            wt = `Physical Weight`,
            gender = Sex,
            ethnic = `Ethnic Group`,
@@ -215,6 +215,9 @@ tidy(clm_bmic, exponentiate = T, conf.int = T)
 ```
 
 Interpretation: 
+
+1. As compared to low bmi, normal BMI, overweight and obese associates with higehr category of HbA1c target
+2. The odd ratio of 
 
 ### Predictor: Waist Circumference
 
