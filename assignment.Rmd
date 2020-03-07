@@ -57,7 +57,8 @@ head(anads0)
 Data Cleaning
 
 1. remove missing value
-2. remove underweight (BMI < 18.5)
+2. remove underweight (BMI < 18.5) and very high BMI (BMI >80).
+3. select only those with known dylipidaemia status (yes/no)
 
 
 ```{r message=FALSE, warning=FALSE}
