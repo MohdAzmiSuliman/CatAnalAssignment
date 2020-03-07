@@ -8,4 +8,7 @@ output: pdf_document
 Ongoing
 
 - refactor/level gender
-  + if unable, then dont relevel,
+  + if unable, then dont relevel
+done. success
+
+- check again bmic
