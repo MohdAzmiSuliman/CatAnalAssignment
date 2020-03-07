@@ -1,0 +1,15 @@
+---
+title: "Assignment Part2"
+author: "Mohd Azmi"
+date: "07/03/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Multinomial Logistic Regression
+
+Another alternative for multiple level outcome analysis if proportional odds assumption was not met is by doing multinomial logistic regression. However multinomial logistic regression will not account for the ordinal level in the outcome.
+
