@@ -72,7 +72,7 @@ anads1 <- anads0 %>%
            HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
                                                   "Target c (>7.0)")),
            wt = `Physical Weight`,
-           gender = fct_relevel(Sex, c("Male", "Female")),
+           gender = fct_relevel(Sex, c("Female", "Male")),
            dmage = `Diabetes Age`,
            ht = `Physical Height`,
            wc = `Physical Waist circumference`,
@@ -373,41 +373,78 @@ clm_mod2ia <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:tc, data
 anova(clm_mod2, clm_mod2ia)
 ```
 
-Interpretation: interaction between gender and total cholesterol level was not signficant.
+Interpretation: interaction between gender and total cholesterol level was not significant.
 
 #### Interaction beween gender and BMI category
 
-Gender and BMI category may have interaction because it was significant different 
+Gender and BMI category may have interaction because it was significant different [$\chi^2$(df) = 20.67 (2), p < 0.001]
 
 ```{r}
 ctable(anads1$bmic, anads1$gender)
 chisq.test(anads1$bmic, anads1$gender)
-```
-
-```{r}
-clm_mod2ia <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:tc, data = anads1)
 clm_mod2ib <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:bmic, data = anads1)
-
-summary(clm_mod2ia)
-anova(clm_mod2, clm_mod2ib)
-
-summary(clm_mod2ib)
 anova(clm_mod2, clm_mod2ib)
 ```
 
-Interpretation: interaction terms was not significant
+Interpretation: interaction between gender and BMI category was not significant
 
 ### Assumption checking - Proportional odds assumption
 
-### Final Model
+One of assumption in ordinal logistic regression, which is proportional odds assumption was checked for numerical variables, which includes
+
+1. total cholesterol level
+2. age
 
 ```{r}
-summary(clm_mod2)
-tidy(clm_mod2, conf.int = T)
-tidy(clm_mod2, exponentiate = T, conf.int = T)
+nominal_test(clm_mod2)
+```
 
+Interpretation: 
+
+1. Proportional odds assumption for total cholesterol level variable was violated.
+2. Proportional odds assumption for age variable was violated
+
+Since assumption for proportionality was violated, cholesterol level and age was categorized.
+
+```{r}
+anads2 <- anads1 %>% 
+  mutate(tcc = cut(tc, breaks = c(0, 5.2, 6.2, 14),
+                   labels = c("good", "borderline", "uncontrolled")),
+         agec = cut(Age, breaks = c(0,18,50,60,70,100),
+                    labels = c("< 18 yo", "19 - 50 yo", "51 - 60 yo", "61 - 70 yo", "above 80 yo")))
+freq(anads2$agec)
+freq(anads2$tcc)
+```
+
+#### Revised Model
+
+total cholesterol level and age variables was changed to total cholesterol category and age category variable
+
+```{r}
+clm_mod2R <- clm(HbA1C_Ta ~ bmic + tcc + dyslpd + gender + agec, data = anads2)
+kable(tidy(clm_mod2R, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
+```
+
+Proportional odds assumption was not tested due to none of the independent variables was numerical data.
+
+### Final Model
+
+In final models, it was found that variables BMI category, total cholesterol level category, dyslipidaemia status, gender and age category were significantly associated with HbA1c target level. Ordinal logistic regression was summarised in table below.
+
+```{r}
+summary(clm_mod2R)
+tidy(clm_mod2R, conf.int = T)
+tidy(clm_mod2R, exponentiate = T, conf.int = T)
+```
+
+
+```{r}
 result_clmmod2 <- matrix(c("Variables", "", "Coefficient", "SE", "p-value", "OR (95% CI)",
-                           "Intercept 1", "","","","",""),ncol=6,byrow=TRUE)
+                           "Intercept 1 (A|B)*", "", -0.744, 0.109,"<0.001","",
+                           "Intercept 2 (B|C)*", "", -0.293, 0.109, 0.007, "",
+                           "BMI Category", "", "", "", "", "",
+                           "", "Normal", 0, "", "", 1,
+                           "", "Overweight", 0.146, 0.074, 0.048, "1.158 (1.001, 1.338)"),ncol=6,byrow=TRUE)
 result_clmmod2
 
 ```
