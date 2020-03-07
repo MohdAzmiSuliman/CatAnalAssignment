@@ -133,11 +133,8 @@ demo_sum <- list("Age (years)" =
                      list("Yes" = ~ n_perc0(.data$dyslpd == "yes"),
                           "No" = ~ n_perc0(.data$dyslpd == "no")))
 
-print(summary_table(anads1, demo_sum),
-      rtitle = "Demographic Summaries",
-      cnames = c("Mean (SD) / n (%)"))
+print(summary_table(anads1, demo_sum), rtitle = "Demographic Summaries", cnames = c("Mean (SD) / n (%)"))
 ```
-
 
 
 ```{r, warning=F, message=F}
@@ -193,8 +190,12 @@ wc_plot <- ggplot(anads1, aes(wc)) +
     xlab("Waist Circumference (cm)") + ylab("Proportion") +
     theme_minimal()
 
+dyslpd_chart <- ggplot(anads1, aes(dyslpd)) +
+  geom_bar() + theme_minimal()
 
-multiplot(age_plot, ht_plot, wt_plot, bmi_plot, wc_plot, hba1c_plot, layout = matrix(c(1,2,3,4,5,6), nrow = 3, byrow = T))
+multiplot(age_plot, gender_chart, ethnic_chart, ht_plot, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
+multiplot(wt_plot, bmi_plot, bmic_chart, wc_plot, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
+multiplot(hba1c_plot, dyslpd_chart, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
 ```
 
 -**extra**-
@@ -238,10 +239,9 @@ kable(tidy(clm_bmic, exponentiate = T, conf.int = T), digits = 3, align = "lcccc
 &nbsp;
 Interpretation: 
 
-1. As compared to low bmi, normal BMI, overweight and obese associates with higher category of HbA1c target group.
-2. The odd of normal BMI being in category of target HbA1c $\leqslant$ 6.5 or above is `r round(exp(coef(clm_bmic)[3]), 2)` higher (95% CI: 1.02, 2.08, p = 0.036) than an underweight BMI.
-3. The odd of overweight being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[4]), 2)` higher (95% CI: 1.55, 3.08, p = 0.036) than an underweight BMI. 
-4. The odd of obese being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[5]), 2)` higher (95% CI: 1.55, 3.08, p = 0.036) than an underweight BMI. 
+1. BMI category had association with higher category of HbA1c target group.
+2. The odd of overweight BMI being in category of target HbA1c $\leqslant$ 6.5 or above is `r round(exp(coef(clm_bmic)[3]), 2)` higher (95% CI: 1.10, 1.46, p = 0.036) than a normal BMI.
+3. The odd of obese being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[4]), 2)` higher (95% CI: 1.30, 1.71, p = 0.036) than a normal BMI. 
 
 ### Predictor: Waist Circumference
 
@@ -314,31 +314,40 @@ Interpretation:
 
 ## Multivariable
 
-Model 1 - IV - bmicategory, waist circumference, total cholesterol, dyslipidaemia status, gender and age
+For multivariable analysis, several independent variables were identified and included in the preliminary main effect models.
+
+### Preliminary Main Effect Models
+
+#### Model 1
+
+For preliminary main effect model 1, independent variables that included were **BMI category**, **waist circumference**, **total cholesterol level**, **dyslipidaemia status**, **gender** and **age**.
 
 ```{r}
 clm_mod1 <- clm(HbA1C_Ta ~ bmic + wc + tc + dyslpd + gender + Age, data = anads1)
-summary(clm_mod1)
+kable(tidy(clm_mod1, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
 
-Model 2 - remove wc
+#### Model 2
+
+For preliminary main effect model 2, predictor **waist circumference** was removed
 
 ```{r}
 clm_mod2 <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age, data = anads1)
-summary(clm_mod2)
+kable(tidy(clm_mod2, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
 
-model 3 - remove wc & bmicat
+#### Model 3
+
+For preliminary main effect model 3, predictor **waist circumference** and **BMI Category** was removed
 
 ```{r}
 clm_mod3 <- clm(HbA1C_Ta ~ tc + dyslpd + gender + Age, data = anads1)
-summary(clm_mod3)
+kable(tidy(clm_mod3, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
-
 
 ### Model comparison
 
-done using LR test
+ALl three preliminary models were compared using LR test
 
 ```{r}
 anova(clm_mod1, clm_mod2, test="Chisq")
@@ -349,11 +358,24 @@ Interpretation: waist circumference can be remove but BMI category was an import
 
 ### Interaction
 
-add interaction term between gender and bmi
+There are two interaction that possibly may affect the model, which include
+
+1. gender and total cholesterol level
+2. gender and BMI category
+
+#### Interaction between gender and total cholesterol level
+
+Gender and total cholesterol level may have interaction because it was found that male had higher total cholesterol level as compared to female [`r t.test(anads1$tc ~ anads1$gender)`]
 
 ```{r}
-anads1 %>% group_by(gender) %>% descr()
+anads1 %>% group_by(gender) %>% descr(wc)
 t.test(anads1$tc ~ anads1$gender)
+clm_mod2ia <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:tc, data = anads1)
+anova(clm_mod2, clm_mod2ib)
+```
+
+
+```{r}
 ctable(anads1$bmic, anads1$gender)
 chisq.test(anads1$bmic, anads1$gender)
 ```
