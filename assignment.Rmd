@@ -347,11 +347,11 @@ kable(tidy(clm_mod3, exponentiate = T, conf.int = T), digits = 3, align = "lcccc
 
 ### Model comparison
 
-ALl three preliminary models were compared using LR test
+All three preliminary models were compared using LR test
 
-```{r}
-anova(clm_mod1, clm_mod2, test="Chisq")
-anova(clm_mod2, clm_mod3, test="Chisq")
+```{r, warning=F}
+anova(clm_mod1, clm_mod2)
+anova(clm_mod2, clm_mod3)
 ```
 
 Interpretation: waist circumference can be remove but BMI category was an important predictor.
@@ -365,15 +365,19 @@ There are two interaction that possibly may affect the model, which include
 
 #### Interaction between gender and total cholesterol level
 
-Gender and total cholesterol level may have interaction because it was found that male had higher total cholesterol level as compared to female [`r t.test(anads1$tc ~ anads1$gender)`]
+Gender and total cholesterol level may have interaction because it was found that male had higher total cholesterol level as compared to female [t-test (df) = 9.45 (5,179.9), p < 0.001]
 
 ```{r}
-anads1 %>% group_by(gender) %>% descr(wc)
 t.test(anads1$tc ~ anads1$gender)
 clm_mod2ia <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:tc, data = anads1)
-anova(clm_mod2, clm_mod2ib)
+anova(clm_mod2, clm_mod2ia)
 ```
 
+Interpretation: interaction between gender and total cholesterol level was not signficant.
+
+#### Interaction beween gender and BMI category
+
+Gender and BMI category may have interaction because it was significant different 
 
 ```{r}
 ctable(anads1$bmic, anads1$gender)
