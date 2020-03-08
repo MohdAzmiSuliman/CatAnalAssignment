@@ -1,7 +1,0 @@
----
-title: "Untitled"
-author: "z"
-date: "3/5/2020"
-output: pdf_document
----
-hy world

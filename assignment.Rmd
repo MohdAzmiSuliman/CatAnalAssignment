@@ -281,9 +281,9 @@ Simple chart between BMI category and HbA1c Target Level
 levels(anads1$bmic)
 ggplot(anads1, aes(HbA1C_Ta, fill=bmic)) +
   geom_bar(position = position_dodge()) +
-  theme_minimal()
+  xlab("HbA1c Target Group") + theme_minimal()
 ```
-
+&nbsp;  
 Univariable Analysis Result
 
 ```{r}
@@ -294,8 +294,8 @@ kable(tidy(clm_bmic, exponentiate = T, conf.int = T), digits = 3, align = "lcccc
 Interpretation: 
 
 1. BMI category had association with higher category of HbA1c target group.
-2. The odd of overweight BMI being in category of target HbA1c $\leqslant$ 6.5 or above is `r round(exp(coef(clm_bmic)[3]), 2)` higher (95% CI: 1.10, 1.46, p = 0.036) than a normal BMI.
-3. The odd of obese being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[4]), 2)` higher (95% CI: 1.30, 1.71, p = 0.036) than a normal BMI. 
+2. The odd of overweight BMI being in category of target HbA1c $\leqslant$ 6.5 or above is `r round(exp(coef(clm_bmic)[3]), 2)` higher (95% CI: 1.10, 1.46, p = 0.001) than a normal BMI.
+3. The odd of obese being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[4]), 2)` higher (95% CI: 1.30, 1.71, p < 0.001) than a normal BMI. 
 
 ### WC
 
@@ -309,9 +309,9 @@ ggplot(anads1, aes(wc)) +
   theme_minimal()
 anads1 %>% group_by(HbA1C_Ta) %>% 
   summarise(mean = mean(wc), sd = sd(wc)) %>%
-  kable(digits = 2)
+  kable(digits = 2, align = "lcc")
 ```
-
+&nbsp;  
 Univariable Analysis Result
 
 ```{r}
@@ -330,6 +330,20 @@ Interpretation:
 
 Predictor: Total Cholesterol Level
 
+Simple chart between total cholesterol level and HbA1c target level
+
+```{r, warning=F}
+ggplot(anads1, aes(tc)) +
+  geom_histogram() + facet_wrap(.~ HbA1C_Ta) +
+  theme_minimal()
+anads1 %>% group_by(HbA1C_Ta) %>% 
+  summarise(mean = mean(tc), sd = sd(tc)) %>%
+  kable(digits = 2, align = "lcc")
+```
+
+&nbsp;  
+Univariable Analysis Result
+
 ```{r}
 clm_tc <- clm(HbA1C_Ta ~ tc, data = anads1)
 kable(tidy(clm_tc, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
@@ -345,6 +359,20 @@ Interpretation:
 ### Age
 
 Predictor: Age
+
+Simple chart between age and HbA1c target level
+
+```{r, warning=F}
+ggplot(anads1, aes(Age)) +
+  geom_histogram() + facet_wrap(.~ HbA1C_Ta) +
+  theme_minimal()
+anads1 %>% group_by(HbA1C_Ta) %>% 
+  summarise(mean = mean(Age), sd = sd(Age)) %>%
+  kable(digits = 2, align = "lcc")
+```
+
+&nbsp;  
+Univariable Analysis Result
 
 ```{r}
 clm_age <- clm(HbA1C_Ta ~ Age, data = anads1)
@@ -362,8 +390,19 @@ Interpretation:
 
 Predictor: Gender
 
+simple chart between gender and HbA1c target level
+
 ```{r}
 levels(anads1$gender)
+ggplot(anads1, aes(HbA1C_Ta, fill=gender)) +
+  geom_bar(position = position_dodge()) +
+  xlab("HbA1c Target Group") + theme_minimal()
+```
+&nbsp;  
+Univariable Analysis Result
+
+
+```{r}
 clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
 kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
@@ -376,8 +415,19 @@ Interpretation:
 
 Predictor: Dyslipidaemia Status
 
+simple chart between dyslipidaemia status and HbA1c target level
+
 ```{r}
 levels(anads1$dyslpd)
+ggplot(anads1, aes(HbA1C_Ta, fill=dyslpd)) +
+  geom_bar(position = position_dodge()) +
+  xlab("HbA1c Target Group") + theme_minimal()
+```
+&nbsp;  
+Interpretation: 
+
+
+```{r}
 clm_dyslipid <- clm(HbA1C_Ta ~ dyslpd, data = anads1)
 kable(tidy(clm_dyslipid, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
@@ -500,7 +550,7 @@ total cholesterol level and age variables was changed to total cholesterol categ
 clm_mod2R <- clm(HbA1C_Ta ~ bmic + tcc + dyslpd + gender + agec, data = anads2)
 kable(tidy(clm_mod2R, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
-&nbsp;
+&nbsp;  
 Proportional odds assumption was not tested due to none of the independent variables was numerical data.
 
 # Final Model
@@ -598,5 +648,13 @@ kable(result_mulnommod0, digits = 3, align = "lllcccccc") %>%
     pack_rows("Logit 1 - [Target C (> 7.0) | Target A (< 6.6)]", 1,13) %>%
     pack_rows("Logit 2 - [Target C (6.6 - 7.0) | Target A (< 6.6)]", 14,26) %>% 
     footnote(general = "*TC Level: Total Choleterol Level (mmol/L)")
+```
+
+# Post-script
+
+Session info
+
+```{r}
+sessionInfo()
 ```
 
