@@ -1,1 +1,2 @@
-Ordinal Logistic Regression Analysis assignment
+# CatAnalAssignment
+Assignment for Categorical Data Analysis
