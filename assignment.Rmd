@@ -7,6 +7,8 @@ output:
         toc: true
         toc_depth: 3
         toc_float: true
+        number_sections: true
+        code_folding: hide
 ---
 
 
@@ -18,7 +20,28 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Problem Statements
 
+### Introduction
+
+Type 2 Diabetes Mellitus (T2DM) is a common non-communicable diseases in Malaysia and worlwide. NHMS 2015 estimated that 17.5% of adults in Malays have diabetes, with more than half of them were newly diagnosed. It is manifested by a chronic hyperglycaemic state in conjuction with other metabolic derangement. T2DM is an important risk factor for cardiovascular diseases and result in various microvascular and macrovascular complications. Currently there is no known cure but the disease can be controlled, enabling the individual to have an improved quality of life.
+
+Malaysian's Clinical Practice Guidelines - Management of Type 2 Diabetes Mellitus, 5th Edition (2015) outline the main aim of management for T2DM is to reduce acute and chronic complications. In general, all patients with diabetes should undergo lifestyle modification, which consist of dietary therapy and increased physical activity. The need of medication depends on the symptoms, glycaemic control and presence of any complication.
+
+There are several targets for control of T2DM, which consist of glycaemic control, lipid, blood pressure, exercise and body weight targets, which shown below. 
+![](T2DM_controltarget.png)
+
+For glycaemic control, HbA1c have been used as one of the indicators. HbA1c was a good indicator for long-term glucose level, as it is a glycalated haemoglobin, as compared to capilarry glucose (which is good for acute glucose level). Generally, the target for HbA1c was 6.5% or below, however, there was also individulised HbA1c targets according to patients profile, as shown below.
+![](HbA1c_controltarget.png)
+
+### Dataset and Objective
+
+This dataset was taken from National Diabetic Registry (NDR), which consist of diabetic patients from Perak. One of the aims of NDR as disease surveillance and clinical practice audit. Patient's demographic data and clinical information were recorded in the NDR.
+
+For this exercise, I would like to determine, whether the HbA1c achieved by the patient will fit the patient in which group of the HbA1c target, and what are factors that may associated to the target level.
+
+
 ## Environment
+
+click at code button tu reveal the r code chunk.
 
 ```{r}
 library(pacman)
@@ -28,6 +51,8 @@ options(qwraps2_markup = "markdown")
 ```
 
 ## Dataset & Data Wrangling
+
+Import dataset from file
 
 ```{r, eval=F, echo=T}
 dataset <- read_excel("data_ord_prac.xlsx",
@@ -48,6 +73,9 @@ write.csv(dataset,'dataset.csv')
 ```
 
 ### Data Exploration
+
+Overview of the dataset
+
 ```{r, warning=F}
 anads0 <- read_csv("dataset.csv", col_types = cols(`Body mass index` = col_skip(),
                                                    X1 = col_skip()))
@@ -59,18 +87,22 @@ Data Cleaning
 1. remove missing value
 2. remove underweight (BMI < 18.5) and very high BMI (BMI >80).
 3. select only those with known dylipidaemia status (yes/no)
+4. convert HbA1c into the 3 HbA1c target levels
+  + Target A (HbA1c < 6.6 mmol/l)
+  + Target B (HbA1c 6.6 - 7.0 mmol/L)
+  + Target C (HbA1c > 7.0 mmol/L)
 
 
 ```{r message=FALSE, warning=FALSE}
 
 anads1 <- anads0 %>%
     mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
-                         labels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
-                                    "Target c (>7.0)")),
-           HbA1C_Ta = fct_relevel(HbA1C_T, c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
-                                             "Target c (>7.0)")),
-           HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
-                                                  "Target c (>7.0)")),
+                         labels = c("Target a (< 6.6)", "Target b (6.6 - 7.0)",
+                                    "Target c (> 7.0)")),
+           HbA1C_Ta = fct_relevel(HbA1C_T, c("Target a (< 6.6)", "Target b (6.6 - 7.0)",
+                                             "Target c (> 7.0)")),
+           HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target a (< 6.6)", "Target b (6.6 - 7.0)",
+                                                  "Target c (> 7.0)")),
            wt = `Physical Weight`,
            gender = fct_relevel(Sex, c("Female", "Male")),
            dmage = `Diabetes Age`,
@@ -97,6 +129,7 @@ str(anads1)
 ```
 
 from total 9,457 samples, `r 9457 - 6055` samples with missing data, making only 6,055 sample for analysis.
+
 
 # Descriptive & Exploratory Analysis
 
@@ -129,6 +162,10 @@ demo_sum <- list("Age (years)" =
                      list("mean (SD)" = ~ mean_sd(.data$wc, denote_sd = "paren")),
                  "HbA1c (%)" =
                      list("mean (SD)" = ~ mean_sd(.data$HbA1c, denote_sd = "paren")),
+                 "HbA1c (Category)" =
+                     list("Target A (< 6.6)" = ~ n_perc0(.data$HbA1C_Ta == "Target a (< 6.6)"),
+                          "Target B (6.6 - 7.0)" = ~ n_perc0(.data$HbA1C_Ta == "Target b (6.6 - 7.0)"),
+                          "Target C (> 7.0)" = ~ n_perc0(.data$HbA1C_Ta == "Target c (> 7.0)")),
                  "Dyslipidaemia" =
                      list("Yes" = ~ n_perc0(.data$dyslpd == "yes"),
                           "No" = ~ n_perc0(.data$dyslpd == "no")))
@@ -169,6 +206,10 @@ hba1c_plot <- ggplot(anads1, aes(HbA1c)) +
     xlab("HbA1c (%)") + ylab ("Proportion") +
     theme_minimal()
 
+HbA1CTa_chart <- ggplot(anads1, aes(HbA1C_Ta)) +
+    geom_bar() + xlab("Type of Hba1c Target") +
+    theme_minimal()
+
 ht_plot <- ggplot(anads1, aes(ht)) +
     geom_histogram(aes(y=..density..), binwidth = 5, colour = "white") +
     stat_function(fun = dnorm, args = list(mean = mean(anads1$ht), sd = sd(anads1$ht))) +
@@ -195,7 +236,7 @@ dyslpd_chart <- ggplot(anads1, aes(dyslpd)) +
 
 multiplot(age_plot, gender_chart, ethnic_chart, ht_plot, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
 multiplot(wt_plot, bmi_plot, bmic_chart, wc_plot, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
-multiplot(hba1c_plot, dyslpd_chart, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
+multiplot(hba1c_plot, HbA1CTa_chart, dyslpd_chart, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
 ```
 
 -**extra**-
@@ -221,35 +262,63 @@ magick::image_write(animplot1out, path = "myanimplot.gif" )
 
 To determine which factors (or predictors) that associated with HbA1c target, ordinal logistic regression (cumulative logit model) will be use. The factors include BMI, waist circumference, total cholesterol level, dyslipidaemia status, gender and age.
 
-## Univariable
+## Univariable Analysis {.tabset .tabset-fade .tabset-pills}
 
-Univariable analysis was done to determine association between each predictor with HbA1c target.levels(anads1$HbA1C_Ta)
+Univariable analysis was done to determine association between each predictor with HbA1c target.
 
 ```{r}
 levels(anads1$HbA1C_Ta)
 ```
 
-### Predictor: BMI Category
+Please click at the tab below to view for univariable analysis for each predictor.  
 
+### BMI
+
+Predictor: BMI Category
+
+Simple chart between BMI category and HbA1c Target Level
 ```{r}
 levels(anads1$bmic)
+ggplot(anads1, aes(HbA1C_Ta, fill=bmic)) +
+  geom_bar(position = position_dodge()) +
+  theme_minimal()
+```
+
+Univariable Analysis Result
+
+```{r}
 clm_bmic <- clm(HbA1C_Ta ~ bmic, data = anads1)
 kable(tidy(clm_bmic, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-&nbsp;
+&nbsp;  
 Interpretation: 
 
 1. BMI category had association with higher category of HbA1c target group.
 2. The odd of overweight BMI being in category of target HbA1c $\leqslant$ 6.5 or above is `r round(exp(coef(clm_bmic)[3]), 2)` higher (95% CI: 1.10, 1.46, p = 0.036) than a normal BMI.
 3. The odd of obese being in category of target HbA1c $\leqslant$ 6.5 or above is  `r round(exp(coef(clm_bmic)[4]), 2)` higher (95% CI: 1.30, 1.71, p = 0.036) than a normal BMI. 
 
-### Predictor: Waist Circumference
+### WC
+
+Predictor: Waist Circumference
+
+Simple chart between waist circumference and HbA1c Target level
+
+```{r, warning=F}
+ggplot(anads1, aes(wc)) +
+  geom_histogram() + facet_wrap(.~ HbA1C_Ta) +
+  theme_minimal()
+anads1 %>% group_by(HbA1C_Ta) %>% 
+  summarise(mean = mean(wc), sd = sd(wc)) %>%
+  kable(digits = 2)
+```
+
+Univariable Analysis Result
 
 ```{r}
 clm_wc <- clm(HbA1C_Ta ~ wc, data = anads1)
 kable(tidy(clm_wc, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-&nbsp;
+&nbsp;  
 Interpretation: 
 
 1. Higher waist circumference associates with higher category of HbA1c target group.
@@ -257,13 +326,15 @@ Interpretation:
 3. For each increase of 10 cm of waist circumference, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_wc)[3]*10, 4)`, which correspond increase of odd of `r round(exp(coef(clm_wc)[3]*10), 3)` times higher
 
 
-### Predictor: Total Cholesterol Level
+### TC
+
+Predictor: Total Cholesterol Level
 
 ```{r}
 clm_tc <- clm(HbA1C_Ta ~ tc, data = anads1)
 kable(tidy(clm_tc, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-&nbsp;
+&nbsp;  
 Interpretation: 
 
 1. Higher total cholesterol level associates with higher category of HbA1c target group.
@@ -271,13 +342,15 @@ Interpretation:
 3. For each increase of 10 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_tc)[3]*10, 2)`, which correspond increase of odd of `r round(exp(coef(clm_tc)[3]*10), 2)` times higher
 
 
-### Predictor: Age
+### Age
+
+Predictor: Age
 
 ```{r}
 clm_age <- clm(HbA1C_Ta ~ Age, data = anads1)
 kable(tidy(clm_age, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-&nbsp;
+&nbsp;  
 Interpretation: 
 
 1. Higher age associates with lower category of HbA1c target group.
@@ -285,19 +358,23 @@ Interpretation:
 3. For each increase of 10 year of age, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_age)[3]*10, 2)`, which correspond to odd of `r round(exp(coef(clm_age)[3]*10), 2)` times.
 
 
-### Predictor: Gender
+### Gender
+
+Predictor: Gender
 
 ```{r}
 levels(anads1$gender)
 clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
 kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
 ```
-&nbsp;
+&nbsp;  
 Interpretation: 
 
 1. Gender had no association with higher category of HbA1c target group.
 
-### Predictor: Dyslipidaemia Status
+### Dyslipidaemia
+
+Predictor: Dyslipidaemia Status
 
 ```{r}
 levels(anads1$dyslpd)
@@ -311,7 +388,7 @@ Interpretation:
 
 
 
-## Multivariable
+## Multivariable Analysis
 
 For multivariable analysis, several independent variables were identified and included in the preliminary main effect models.
 
@@ -463,7 +540,7 @@ kable(result_clmmod2, align = "lcccc") %>%
 Another alternative for multiple level outcome analysis if proportional odds assumption was not met is by doing multinomial logistic regression. However multinomial logistic regression will not account for the ordinal level in the outcome.
 
 
-```{r}
+```{r, warning=F}
 anads3 <- anads2 %>%
     mutate(HbA1C_Ta2 = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
                          labels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
@@ -477,7 +554,7 @@ anads3 <- anads2 %>%
 
 The ordinal logistic regression model was reanalyse using multinomial logistic regression. the variables include
 
-1. Outcome: HbA1c target group (i.e. Target A, Target B or Target C)
+1. Outcome: **HbA1c target group** (i.e. Target A, Target B or Target C)
 2. Predictors : **BMI category**, **waist circumference**, **total cholesterol level**, **dyslipidaemia status**, **gender** and **age**
 
 ```{r}
@@ -520,6 +597,6 @@ kable(result_mulnommod0, digits = 3, align = "lllcccccc") %>%
     kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
     pack_rows("Logit 1 - [Target C (> 7.0) | Target A (< 6.6)]", 1,13) %>%
     pack_rows("Logit 2 - [Target C (6.6 - 7.0) | Target A (< 6.6)]", 14,26) %>% 
-    footnote(general = "*TC Level: Total Choleterol Level (mmol/L")
+    footnote(general = "*TC Level: Total Choleterol Level (mmol/L)")
 ```
 
