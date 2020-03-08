@@ -8,8 +8,110 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
+## Environment
+
+```{r}
+library(pacman)
+p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate,
+       ordinal, brant, kableExtra, VGAM)
+options(qwraps2_markup = "markdown")
+```
+
+
+### Data Exploration
+```{r, warning=F}
+anads0 <- read_csv("dataset.csv", col_types = cols(`Body mass index` = col_skip(),
+                                                   X1 = col_skip()))
+anads1 <- anads0 %>%
+    mutate(HbA1C_T = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
+                         labels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
+                                    "Target c (>7.0)")),
+           HbA1C_Ta = fct_relevel(HbA1C_T, c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
+                                             "Target c (>7.0)")),
+           HbA1C_Ta = ordered(HbA1C_Ta, levels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
+                                                  "Target c (>7.0)")),
+           wt = `Physical Weight`,
+           gender = fct_relevel(Sex, c("Female", "Male")),
+           dmage = `Diabetes Age`,
+           ht = `Physical Height`,
+           wc = `Physical Waist circumference`,
+           tc = `Total Cholesterol`,
+           ethnic = `Ethnic Group`,
+           bmi = wt/((ht/100)^2)) %>% 
+    filter(bmi > 18.499) %>% 
+    mutate(bmic = cut(bmi, breaks = c(0, 18.499, 22.999, 26.999, 80),
+                      labels = c("underweight", "normal", "overweight", "obese")),
+           bmic = fct_relevel(bmic, levels = c("underweight", "normal", "overweight", "obese")),
+           ethniccol = fct_collapse(ethnic, malay = "Malay", chinese = "Chinese", indian = "Indian",
+                                    other = c("Bajau", "Murut", "Orang Asli (Peninsular)",
+                                              "Iban", "Foreign National", "Others", "Unknown")),
+           ethniccol2 = fct_relevel(ethniccol, c("malay", "chinese", "indian", "other")),
+           dyslpd = fct_relevel(Dyslipidaemia, c("no", "yes"))) %>%
+    select(HbA1c, HbA1C_Ta, Age, gender, ethniccol2, dmage, ht, wt, bmi, bmic, wc, 
+           tc, dyslpd) %>%
+    filter(dyslpd == "yes" | dyslpd == "no") %>% 
+    drop_na()
+
+anads2 <- anads1 %>% 
+  mutate(tcc = cut(tc, breaks = c(0, 5.2, 6.2, 14),
+                   labels = c("good", "borderline", "uncontrolled")),
+         agec = cut(Age, breaks = c(0,18,50,60,70,100),
+                    labels = c("< 18 yo", "19 - 50 yo", "51 - 60 yo", "61 - 70 yo", "above 70 yo")))
+
+anads3 <- anads2 %>%
+    mutate(HbA1C_Ta2 = cut(HbA1c, breaks = c(0, 6.5, 7.0, 20),
+                         labels = c("Target a (<= 6.5)", "Target b (6.6 - 7.0)",
+                                    "Target c (>7.0)")),
+           HbA1C_Ta3 = fct_relevel(HbA1C_Ta2, levels = c("Target c (>7.0)", "Target b (6.6 - 7.0)", "Target a (<= 6.5)"))) %>%
+    select(HbA1c, HbA1C_Ta3, Age, gender, ethniccol2, dmage, ht, wt, bmi, bmic, wc, tc, dyslpd)
+
+str(anads2)
+str(anads3)
+```
 
 # Multinomial Logistic Regression
 
 Another alternative for multiple level outcome analysis if proportional odds assumption was not met is by doing multinomial logistic regression. However multinomial logistic regression will not account for the ordinal level in the outcome.
+
+
+```{r}
+levels(anads3$HbA1C_Ta3)
+mulnommod0 <- vglm(HbA1C_Ta3 ~ bmic + tc + dyslpd + gender + Age, multinomial, data = anads3)
+summary(mulnommod0)
+```
+
+```{r}
+result_mulnommod0 <- matrix(c("BMI (Category)", "", "", "", "", "", "", "",
+                              "", "Normal", 0, "", "", 1, "", "",
+                              "", "Overweight", round(coef(mulnommod0)[3], 3), 0.083, 0.044, round(exp(coef(mulnommod0)[3]), 3), round(exp(confint(mulnommod0)[3, 1:2]), 3),
+                              "", "Obese", round(coef(mulnommod0)[5], 3), 0.08045, 0.001, round(exp(coef(mulnommod0)[5]), 3), round(exp(confint(mulnommod0)[5, 1:2]), 3),
+                              "TC Level*", "", round(coef(mulnommod0)[7],3), 0.025, "<0.001", round(exp(coef(mulnommod0)[7]), 3), round(exp(confint(mulnommod0)[7, 1:2]), 3),
+                              "Dyslipidaemia", "Status", "", "", "", "", "", "",
+                              "", "No", 0, "", "", 1, "","",
+                              "", "Yes", round(coef(mulnommod0)[9], 3), 0.069, 0.006, round(exp(coef(mulnommod0)[9]), 3), round(exp(confint(mulnommod0)[9, 1:2]), 3),
+                              "Gender", "", "", "", "", "", "", "",
+                              "", "Female", 0, "", "", 1, "","",
+                              "", "Male", round(coef(mulnommod0)[11], 3), 0.0597, 0.001, round(exp(coef(mulnommod0)[11]), 3), round(exp(confint(mulnommod0)[11, 1:2]), 3),
+                              "Age (years)", "", round(coef(mulnommod0)[13], 3), 0.003, "<0.001", round(exp(coef(mulnommod0)[13]), 3), round(exp(confint(mulnommod0)[13, 1:2]), 3),
+                              "Constant", "", round(coef(mulnommod0)[1],3), 0.243, "<0.001", "", "", "",
+                              "BMI (Category)", "", "", "", "", "", "", "",
+                              "", "Normal", 0, "", "", 1, "", "",
+                              "", "Overweight", round(coef(mulnommod0)[4], 3), 0.131, 0.484, round(exp(coef(mulnommod0)[4]), 3), round(exp(confint(mulnommod0)[4, 1:2]), 3),
+                              "", "Obese", round(coef(mulnommod0)[6], 3), 0.125, 0.151, round(exp(coef(mulnommod0)[6]), 3), round(exp(confint(mulnommod0)[6, 1:2]), 3),
+                              "TC Level*", "", round(coef(mulnommod0)[8],3), 0.041, 0.782, round(exp(coef(mulnommod0)[8]), 3), round(exp(confint(mulnommod0)[8, 1:2]), 3),
+                              "Dyslipidaemia", "Status", "", "", "", "", "", "",
+                              "", "No", 0, "", "", 1, "","",
+                              "", "Yes", round(coef(mulnommod0)[10], 3), 0.107, 0.446, round(exp(coef(mulnommod0)[10]), 3), round(exp(confint(mulnommod0)[10, 1:2]), 3),
+                              "Gender", "", "", "", "", "", "", "",
+                              "", "Female", 0, "", "", 1, "","",
+                              "", "Male", round(coef(mulnommod0)[12], 3), 0.095, 0.168, round(exp(coef(mulnommod0)[12]), 3), round(exp(confint(mulnommod0)[12, 1:2]), 3),
+                              "Age (years)", "", round(coef(mulnommod0)[14],3), 0.005, 0.548, round(exp(coef(mulnommod0)[14]), 3), round(exp(confint(mulnommod0)[14, 1:2]), 3),
+                              "Constant", "", round(coef(mulnommod0)[2],3), 0.3996, "<0.001", "", "", ""), ncol = 8, byrow = T)
+colnames(result_mulnommod0) <- c("Variables", "", "Coefficient", "SE", "p-value", "RRR", "Lower CI", "Upper CI")
+kable(result_mulnommod0, digits = 3, align = "lllcccccc") %>% 
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>% 
+    pack_rows("Logit 1 - [Target C (> 7.0) | Target A (< 6.6)]", 1,13) %>%
+    pack_rows("Logit 2 - [Target C (6.6 - 7.0) | Target A (< 6.6)]", 14,26) %>% 
+    footnote(general = "*TC Level: Total Choleterol Level (mmol/L")
+```
 
