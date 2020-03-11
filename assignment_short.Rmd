@@ -16,32 +16,28 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-# Pre-amble
+# Problem Statements
 
-## Problem Statements
+*note:*
 
-### Introduction
+*1. this is short version of full analysis. prefer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for long version*  
+*2. the code was hidden, so click on the <button>code</button> button to view r-code chunk* 
 
-Type 2 Diabetes Mellitus (T2DM) is a common non-communicable diseases in Malaysia and worlwide. NHMS 2015 estimated that 17.5% of adults in Malays have diabetes, with more than half of them were newly diagnosed. It is manifested by a chronic hyperglycaemic state in conjuction with other metabolic derangement. T2DM is an important risk factor for cardiovascular diseases and result in various microvascular and macrovascular complications. Currently there is no known cure but the disease can be controlled, enabling the individual to have an improved quality of life.
+## Introduction
+
+Type 2 Diabetes Mellitus (T2DM) is a common non-communicable diseases in Malaysia. T2DM is an important risk factor for cardiovascular diseases with various microvascular and macrovascular complications. Currently there is no known cure but the disease can be controlled, enabling the individual to have an improved quality of life.
 
 Malaysian's Clinical Practice Guidelines - Management of Type 2 Diabetes Mellitus, 5th Edition (2015) outline the main aim of management for T2DM is to reduce acute and chronic complications. In general, all patients with diabetes should undergo lifestyle modification, which consist of dietary therapy and increased physical activity. The need of medication depends on the symptoms, glycaemic control and presence of any complication.
 
-There are several targets for control of T2DM, which consist of glycaemic control, lipid, blood pressure, exercise and body weight targets, which shown below. 
-![](T2DM_controltarget.png)
-
-For glycaemic control, HbA1c have been used as one of the indicators. HbA1c was a good indicator for long-term glucose level, as it is a glycalated haemoglobin, as compared to capilarry glucose (which is good for acute glucose level). Generally, the target for HbA1c was 6.5% or below, however, there was also individulised HbA1c targets according to patients profile, as shown below.
+There are several targets for control of T2DM, which consist of glycaemic control, lipid, blood pressure, exercise and body weight targets. For glycaemic control, HbA1c have been used as one of the indicators. Generally, the target for HbA1c was 6.5% or below, however, there was also individulised HbA1c targets according to patients profile, as shown below.
 ![](HbA1c_controltarget.png)
 
-### Dataset and Objective
+## Dataset and Objective
 
-This dataset was taken from National Diabetic Registry (NDR), which consist of diabetic patients from Perak. One of the aims of NDR as disease surveillance and clinical practice audit. Patient's demographic data and clinical information were recorded in the NDR.
-
-For this exercise, I would like to determine, whether the HbA1c achieved by the patient will fit the patient in which group of the HbA1c target, and what are factors that may associated to the target level.
+This dataset was taken from National Diabetic Registry (NDR), which consist of diabetic patients from Perak. For this exercise, I would like to determine, whether the HbA1c achieved by the patient will fit the patient in which group of the HbA1c target, and what are factors that may associated to the target level.
 
 
-## Environment
-
-click at code button tu reveal the r code chunk.
+# Environment
 
 ```{r}
 library(pacman)
@@ -50,29 +46,7 @@ p_load(readxl, Rmisc, tidyverse, summarytools, qwraps2, broom, knitr, gganimate,
 options(qwraps2_markup = "markdown")
 ```
 
-## Dataset & Data Wrangling
-
-Import dataset from file
-
-```{r, eval=F, echo=T}
-dataset <- read_excel("data_ord_prac.xlsx",
-                      col_types = c("numeric", "text", "text", "numeric",
-                                    "numeric", "numeric", "numeric",
-                                    "numeric", "skip", "skip", "skip",
-                                    "skip", "skip", "skip", "numeric",
-                                    "numeric", "numeric", "numeric",
-                                    "numeric", "skip", "skip", "skip",
-                                    "skip", "skip", "skip", "skip", "skip",
-                                    "skip", "skip", "skip", "skip", "skip",
-                                    "skip", "skip", "skip", "text", "text",
-                                    "text", "text", "text", "text", "text",
-                                    "skip", "skip", "skip", "skip", "skip",
-                                    "skip", "skip", "skip", "text", "text",
-                                    "text"))
-write.csv(dataset,'dataset.csv')
-```
-
-### Data Exploration
+## Data Exploration & Data Wrangling
 
 Overview of the dataset
 
@@ -239,30 +213,11 @@ multiplot(wt_plot, bmi_plot, bmic_chart, wc_plot, layout = matrix(c(1,2,3,4), nc
 multiplot(hba1c_plot, HbA1CTa_chart, dyslpd_chart, layout = matrix(c(1,2,3,4), ncol = 2, byrow = T))
 ```
 
--**extra**-
-
-animate plot of scatter plot between hba1c and bmi, by age
-
-```{r, eval = F, warning=F}
-animplot1 <- ggplot(anads1, aes(x = bmi, y = HbA1c)) +
-    geom_point(aes(colour = Age)) +
-    transition_states(Age, transition_length = 5, state_length = 3) +
-    ease_aes("cubic-in-out") +
-    ggtitle("Now showing {closest_state} years old",
-            subtitle = "Frame {frame} of {nframes}")
-animplot1out <- animate(animplot1)
-magick::image_write(animplot1out, path = "myanimplot.gif" )
-```
-
-![](myanimplot.gif)
-
-
-
 # Ordinal Logistic Regression
 
 To determine which factors (or predictors) that associated with HbA1c target, ordinal logistic regression (cumulative logit model) will be use. The factors include BMI, waist circumference, total cholesterol level, dyslipidaemia status, gender and age.
 
-## Univariable Analysis {.tabset .tabset-fade .tabset-pills}
+## Univariable Analysis
 
 Univariable analysis was done to determine association between each predictor with HbA1c target.
 
@@ -270,7 +225,7 @@ Univariable analysis was done to determine association between each predictor wi
 levels(anads1$HbA1C_Ta)
 ```
 
-Please click at the tab below to view for univariable analysis for each predictor.  
+Below is example of univariable analysis for BMI (category) and waist circumference (numerical).
 
 ### BMI
 
@@ -323,164 +278,30 @@ Interpretation:
 
 1. Higher waist circumference associates with higher category of HbA1c target group.
 2. For each increase of 1 cm of waist circumference, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_wc)[3], 4)`, which correspond increase of odd of `r round(exp(coef(clm_wc)[3]), 4)` times higher.
-3. For each increase of 10 cm of waist circumference, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_wc)[3]*10, 4)`, which correspond increase of odd of `r round(exp(coef(clm_wc)[3]*10), 3)` times higher
+3. For each increase of 10 cm of waist circumference, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_wc)[3]*10, 4)`, which correspond increase of odd of `r round(exp(coef(clm_wc)[3]*10), 3)` times higher.  
 
-
-### TC
-
-Predictor: Total Cholesterol Level
-
-Simple chart between total cholesterol level and HbA1c target level
-
-```{r, warning=F}
-ggplot(anads1, aes(tc)) +
-  geom_histogram() + facet_wrap(.~ HbA1C_Ta) +
-  theme_minimal()
-anads1 %>% group_by(HbA1C_Ta) %>% 
-  summarise(mean = mean(tc), sd = sd(tc)) %>%
-  kable(digits = 2, align = "lcc")
-```
-
-&nbsp;  
-Univariable Analysis Result
-
-```{r}
-clm_tc <- clm(HbA1C_Ta ~ tc, data = anads1)
-kable(tidy(clm_tc, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
-```
-&nbsp;  
-Interpretation: 
-
-1. Higher total cholesterol level associates with higher category of HbA1c target group.
-2. For each increase of 1 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_tc)[3], 2)`, which correspond increase of odd of `r round(exp(coef(clm_tc)[3]), 2)` times higher.
-3. For each increase of 10 mmol/L of total cholesterol level, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_tc)[3]*10, 2)`, which correspond increase of odd of `r round(exp(coef(clm_tc)[3]*10), 2)` times higher
-
-
-### Age
-
-Predictor: Age
-
-Simple chart between age and HbA1c target level
-
-```{r, warning=F}
-ggplot(anads1, aes(Age)) +
-  geom_histogram() + facet_wrap(.~ HbA1C_Ta) +
-  theme_minimal()
-anads1 %>% group_by(HbA1C_Ta) %>% 
-  summarise(mean = mean(Age), sd = sd(Age)) %>%
-  kable(digits = 2, align = "lcc")
-```
-
-&nbsp;  
-Univariable Analysis Result
-
-```{r}
-clm_age <- clm(HbA1C_Ta ~ Age, data = anads1)
-kable(tidy(clm_age, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
-```
-&nbsp;  
-Interpretation: 
-
-1. Higher age associates with lower category of HbA1c target group.
-2. For each increase of 1 year of age, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_age)[3], 2)`, which correspond to odd of `r round(exp(coef(clm_age)[3]), 2)` times.
-3. For each increase of 10 year of age, the log odds of being in category of target HbA1c $\leqslant$ 6.5 or above was `r round(coef(clm_age)[3]*10, 2)`, which correspond to odd of `r round(exp(coef(clm_age)[3]*10), 2)` times.
-
-
-### Gender
-
-Predictor: Gender
-
-simple chart between gender and HbA1c target level
-
-```{r}
-levels(anads1$gender)
-ggplot(anads1, aes(HbA1C_Ta, fill=gender)) +
-  geom_bar(position = position_dodge()) +
-  xlab("HbA1c Target Group") + theme_minimal()
-```
-&nbsp;  
-Univariable Analysis Result
-
-
-```{r}
-clm_gender <- clm(HbA1C_Ta ~ gender, data = anads1)
-kable(tidy(clm_gender, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
-```
-&nbsp;  
-Interpretation: 
-
-1. Gender had no association with higher category of HbA1c target group.
-
-### Dyslipidaemia
-
-Predictor: Dyslipidaemia Status
-
-simple chart between dyslipidaemia status and HbA1c target level
-
-```{r}
-levels(anads1$dyslpd)
-ggplot(anads1, aes(HbA1C_Ta, fill=dyslpd)) +
-  geom_bar(position = position_dodge()) +
-  xlab("HbA1c Target Group") + theme_minimal()
-```
-&nbsp;  
-Interpretation: 
-
-
-```{r}
-clm_dyslipid <- clm(HbA1C_Ta ~ dyslpd, data = anads1)
-kable(tidy(clm_dyslipid, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
-```
 &nbsp;
-Interpretation:
+Apart from BMI (category) and waist circumference, other variables that have signficant association (p < 0.05) with the outcome in univariable analysis were total cholesterol and age. Other variables that did not have significant association with the outcome in univariable analysis include gender (p = 0.162) and dyslipidaemia status (p = 0.166).  
 
-1. Dyslipidaemia status had no association with higher category of HbA1c target group.
-
-
+*note: For full univariable analysis, please view the full report at [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis).*
 
 ## Multivariable Analysis
 
-For multivariable analysis, several independent variables were identified and included in the preliminary main effect models.
+For multivariable analysis, several independent variables were identified and included in the preliminary main effect models. All the preliminary main effect models were compared and these variables were included in final model.
 
-### Preliminary Main Effect Models
+1. BMI category
+2. Total Cholesterol Level
+3. Dyslipidaemia status
+4. Gender
+5. Age
 
-#### Model 1
-
-For preliminary main effect model 1, independent variables that included were **BMI category**, **waist circumference**, **total cholesterol level**, **dyslipidaemia status**, **gender** and **age**.
-
-```{r}
-clm_mod1 <- clm(HbA1C_Ta ~ bmic + wc + tc + dyslpd + gender + Age, data = anads1)
-kable(tidy(clm_mod1, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
-```
-
-#### Model 2
-
-For preliminary main effect model 2, predictor **waist circumference** was removed
 
 ```{r}
 clm_mod2 <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age, data = anads1)
 kable(tidy(clm_mod2, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
-
-#### Model 3
-
-For preliminary main effect model 3, predictor **waist circumference** and **BMI Category** was removed
-
-```{r}
-clm_mod3 <- clm(HbA1C_Ta ~ tc + dyslpd + gender + Age, data = anads1)
-kable(tidy(clm_mod3, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
-```
-
-### Model comparison
-
-All three preliminary models were compared using LR test
-
-```{r, warning=F}
-anova(clm_mod1, clm_mod2)
-anova(clm_mod2, clm_mod3)
-```
-
-Interpretation: waist circumference can be remove but BMI category was an important predictor.
+&nbsp;
+*note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for step-by-step model building*
 
 ### Interaction
 
@@ -489,37 +310,13 @@ There are two interaction that possibly may affect the model, which include
 1. gender and total cholesterol level
 2. gender and BMI category
 
-#### Interaction between gender and total cholesterol level
+Both interactions were tested but not significant.
 
-Gender and total cholesterol level may have interaction because it was found that male had higher total cholesterol level as compared to female [t-test (df) = 9.45 (5,179.9), p < 0.001]
-
-```{r}
-t.test(anads1$tc ~ anads1$gender)
-clm_mod2ia <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:tc, data = anads1)
-anova(clm_mod2, clm_mod2ia)
-```
-
-Interpretation: interaction between gender and total cholesterol level was not significant.
-
-#### Interaction beween gender and BMI category
-
-Gender and BMI category may have interaction because it was significant different [$\chi^2$(df) = 20.67 (2), p < 0.001]
-
-```{r}
-ctable(anads1$bmic, anads1$gender)
-chisq.test(anads1$bmic, anads1$gender)
-clm_mod2ib <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age + gender:bmic, data = anads1)
-anova(clm_mod2, clm_mod2ib)
-```
-
-Interpretation: interaction between gender and BMI category was not significant
+*note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for interaction testing*
 
 ### Assumption checking - Proportional odds assumption
 
-One of assumption in ordinal logistic regression, which is proportional odds assumption was checked for numerical variables, which includes
-
-1. total cholesterol level
-2. age
+One of assumption in ordinal logistic regression, which is proportional odds assumption was checked.
 
 ```{r}
 nominal_test(clm_mod2)
@@ -538,20 +335,17 @@ anads2 <- anads1 %>%
                    labels = c("good", "borderline", "uncontrolled")),
          agec = cut(Age, breaks = c(0,18,50,60,70,100),
                     labels = c("< 18 yo", "19 - 50 yo", "51 - 60 yo", "61 - 70 yo", "above 70 yo")))
-freq(anads2$agec)
-freq(anads2$tcc)
 ```
 
 #### Revised Model
 
-total cholesterol level and age variables was changed to total cholesterol category and age category variable
+total cholesterol level and age variables was changed to total cholesterol category and age category variable. Below is the revised final ordinal logistic regression.
 
 ```{r}
 clm_mod2R <- clm(HbA1C_Ta ~ bmic + tcc + dyslpd + gender + agec, data = anads2)
 kable(tidy(clm_mod2R, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
-&nbsp;  
-Proportional odds assumption was not tested due to none of the independent variables was numerical data.
+
 
 # Final Model
 
@@ -576,7 +370,7 @@ result_clmmod2 <- matrix(c("Intercept 1 (A|B)*", round(coef(clm_mod2R)[1], 3), 0
                            "Above 79 years old", round(coef(clm_mod2R)[11], 3), 0.095, "<0.001", round(exp(coef(clm_mod2R)[11]), 3), round(exp(confint(clm_mod2R)[9, 1:2]), 3)),ncol=7,byrow=TRUE)
 colnames(result_clmmod2) <- c("Variables", "Coefficient", "SE", "p-value", "OR", "LL 95% CI", "UL 95% CI")
 
-kable(result_clmmod2, align = "lcccccc")  %>%
+kable(result_clmmod2, align = "lcccccc") %>%
   kable_styling(bootstrap_options = c("striped", "hover", "condensed")) %>%
   pack_rows("Intercept", 1,2) %>% pack_rows("BMI Category", 3,5) %>%
   pack_rows("TC Category*", 6,8) %>% pack_rows("Dyslipidaemia", 9,10) %>%
@@ -601,10 +395,7 @@ anads3 <- anads2 %>%
 
 ## Multinomial Logistic Regression Model
 
-The ordinal logistic regression model was reanalyse using multinomial logistic regression. the variables include
-
-1. Outcome: **HbA1c target group** (i.e. Target A, Target B or Target C)
-2. Predictors : **BMI category**, **waist circumference**, **total cholesterol level**, **dyslipidaemia status**, **gender** and **age**
+The ordinal logistic regression model was reanalyse using multinomial logistic regression with the same variables
 
 ```{r}
 levels(anads3$HbA1C_Ta3)
@@ -616,48 +407,12 @@ summary(mulnommod0)
 
 Model fitness check by assessing logit 1 and logit 2 separately with binary logistic regression
 
-### Model Fitness for Logit 1
+1. Model fitness for Logit 1 model was acceptable with Hosmer Lemeshow not significant and overal percentage = `r round((402+3065)/5435*100, 1)`%, however AUROC was low.
 
-Outcome: Target A vs Target C
+2. Model fitness was acceptable for logit 2 model with Hosmer Lemeshow Test was not significant and overall percentage = `r round(2048/2668*100, 1)`%
 
-```{r}
-anads3_logit1ds <- anads3 %>% 
-  filter(HbA1C_Ta2 == "Target A (< 6.6)" | HbA1C_Ta2 == "Target C (> 7.0)")
-levels(anads3_logit1ds$HbA1C_Ta2)
-logreglogit1 <- glm(HbA1C_Ta2 ~ bmic + tc + dyslpd + gender + Age,
-                    family = binomial, data = anads3_logit1ds)
-kable(tidy(logreglogit1, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
-logreglogit1_pred <- augment(logreglogit1, type.predict ="response", type.residual = "response")
-logreglogit1_pred <- logreglogit1_pred %>%
-  mutate(PredCat = cut(.fitted, breaks = c(0, 0.4999, 1),
-                       labels = c("Target A (< 6.6)","Target C (>7.0)")))
-ctable(logreglogit1_pred$HbA1C_Ta2, logreglogit1_pred$PredCat)
-gof_logreglogit1 <- gof(logreglogit1, plotROC = T)
-logitgof(logreglogit1_pred$HbA1C_Ta2, logreglogit1_pred$.fitted, g = 10)
-```
+*note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for model assessment*
 
-Model fitness for Logit 1 model was acceptable with Hosmer Lemeshow not significant and overal percentage = `r (402+3065)/5435*100`%, however AUROC was low.
-
-### Model Fitness for Logit 2
-
-```{r}
-anads3_logit2ds <- anads3 %>% 
-  filter(HbA1C_Ta2 == "Target A (< 6.6)" | HbA1C_Ta3 == "Target B (6.6 - 7.0)")
-
-levels(anads3_logit2ds$HbA1C_Ta2)
-logreglogit2 <- glm(HbA1C_Ta2 ~ bmic + tc + dyslpd + gender + Age,
-                    family = binomial, data = anads3_logit2ds)
-kable(tidy(logreglogit2, exponentiate = T, conf.int = T), digits = 3, align = "lccccccc")
-logreglogit2_pred <- augment(logreglogit2, type.predict ="response", type.residual = "response")
-logreglogit2_pred <- logreglogit2_pred %>%
-  mutate(PredCat = cut(.fitted, breaks = c(0, 0.4999, 1),
-                       labels = c("Target A (< 6.6)","Target B (6.6 - 7.0)")))
-ctable(logreglogit2_pred$HbA1C_Ta2, logreglogit2_pred$PredCat)
-#gof_logreglogit2 <- gof(logreglogit2, plotROC = T)
-logitgof(logreglogit2_pred$HbA1C_Ta2, logreglogit2_pred$.fitted, g = 10)
-```
-
-Model fitness was acceptable for logit 2 model with Hosmer Lemeshow Test was not significant and overall percentage = `r 2048/2668*100`%
 
 ## Multinomial Logistic Regression Result
 
