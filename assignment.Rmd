@@ -613,6 +613,30 @@ mulnommod0 <- vglm(HbA1C_Ta3 ~ bmic + tc + dyslpd + gender + Age, multinomial, d
 summary(mulnommod0)
 ```
 
+## Model Checking
+
+Model fitness check by assessing logit 1 and logit 2 separately with binary logistic regression
+
+### Model Fitness for Logit 1
+
+
+
+```{r}
+anads3_logit1ds <- anads3 %>% 
+  filter(HbA1C_Ta == "Target a (< 6.6)" | HbA1C_Ta == "Target c (> 7.0)")
+```
+
+
+### Model Fitness for Logit 2
+
+```{r}
+anads3_logit2ds <- anads3 %>% 
+  filter(HbA1C_Ta == "Target a (< 6.6)" | HbA1C_Ta == "Target b (6.6 - 7.0)")
+```
+
+
+## Multinomial Logistic Regression Result
+
 The result of analysis was summarised in table below
 
 ```{r}
