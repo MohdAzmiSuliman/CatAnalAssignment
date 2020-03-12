@@ -1,7 +1,7 @@
 ---
 title: "Logistic Regression - Ordinal and Multinomial"
 author: "Mohd Azmi"
-date: "27/02/2020"
+date: "12/03/2020"
 output:
     html_document:
         toc: true
@@ -21,7 +21,8 @@ knitr::opts_chunk$set(echo = TRUE)
 *note:*
 
 *1. this is short version of full analysis. prefer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for long version*  
-*2. the code was hidden, so click on the <button>code</button> button to view r-code chunk* 
+
+*2. the code was hidden, click on the <button>code</button> button to view r-code chunk* 
 
 ## Introduction
 
