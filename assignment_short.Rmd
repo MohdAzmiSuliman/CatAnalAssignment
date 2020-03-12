@@ -1,5 +1,5 @@
 ---
-title: "Logistic Regression - Ordinal and Multinomial"
+title: "Advanced Categorical Data Analysis - Ordinal and Multinomial Logistic Regression"
 author: "Mohd Azmi"
 date: "12/03/2020"
 output:
@@ -301,7 +301,7 @@ For multivariable analysis, several independent variables were identified and in
 clm_mod2 <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age, data = anads1)
 kable(tidy(clm_mod2, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
-&nbsp;
+&nbsp;  
 *note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for step-by-step model building*
 
 ### Interaction
