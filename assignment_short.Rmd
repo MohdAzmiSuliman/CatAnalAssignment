@@ -20,9 +20,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 *note:*
 
-*1. this is short version of full analysis. prefer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for long version*  
+*1. This is short version of full analysis. Refer [Appendix A (link to rpub : https://rpubs.com/puterabemi/CategoryDataAnalysis)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for long version*  
 
-*2. the code was hidden, click on the <button>code</button> button to view r-code chunk* 
+*2. The code was hidden, click on the <button>code</button> button to view r-code chunk* 
 
 ## Introduction
 
@@ -30,8 +30,9 @@ Type 2 Diabetes Mellitus (T2DM) is a common non-communicable diseases in Malaysi
 
 Malaysian's Clinical Practice Guidelines - Management of Type 2 Diabetes Mellitus, 5th Edition (2015) outline the main aim of management for T2DM is to reduce acute and chronic complications. In general, all patients with diabetes should undergo lifestyle modification, which consist of dietary therapy and increased physical activity. The need of medication depends on the symptoms, glycaemic control and presence of any complication.
 
-There are several targets for control of T2DM, which consist of glycaemic control, lipid, blood pressure, exercise and body weight targets. For glycaemic control, HbA1c have been used as one of the indicators. Generally, the target for HbA1c was 6.5% or below, however, there was also individulised HbA1c targets according to patients profile, as shown below.
-![](HbA1c_controltarget.png)
+There are several targets for control of T2DM, which consist of glycaemic control, lipid, blood pressure, exercise and body weight targets. For glycaemic control, HbA1c have been used as one of the indicators. Generally, the target for HbA1c was 6.5% or below, however, there was also individulised HbA1c targets according to patients profile, as shown below.  
+
+![Source: CPG T2DM 2015](HbA1c_controltarget.png)
 
 ## Dataset and Objective
 
@@ -284,7 +285,7 @@ Interpretation:
 &nbsp;
 Apart from BMI (category) and waist circumference, other variables that have signficant association (p < 0.05) with the outcome in univariable analysis were total cholesterol and age. Other variables that did not have significant association with the outcome in univariable analysis include gender (p = 0.162) and dyslipidaemia status (p = 0.166).  
 
-*note: For full univariable analysis, please view the full report at [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis).*
+*note: For full univariable analysis, please view the full report at [Appendix A (link to rpub : https://rpubs.com/puterabemi/CategoryDataAnalysis)](https://rpubs.com/puterabemi/CategoryDataAnalysis).*
 
 ## Multivariable Analysis
 
@@ -302,7 +303,7 @@ clm_mod2 <- clm(HbA1C_Ta ~ bmic + tc + dyslpd + gender + Age, data = anads1)
 kable(tidy(clm_mod2, exponentiate = T, conf.int = T), digits = 3, align = "lcccc")
 ```
 &nbsp;  
-*note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for step-by-step model building*
+*note: please refer [Appendix A (link to rpub : https://rpubs.com/puterabemi/CategoryDataAnalysis)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for step-by-step model building*
 
 ### Interaction
 
@@ -313,7 +314,7 @@ There are two interaction that possibly may affect the model, which include
 
 Both interactions were tested but not significant.
 
-*note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for interaction testing*
+*note: Please refer [Appendix A (link to rpub : https://rpubs.com/puterabemi/CategoryDataAnalysis)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for interaction testing*
 
 ### Assumption checking - Proportional odds assumption
 
@@ -412,7 +413,7 @@ Model fitness check by assessing logit 1 and logit 2 separately with binary logi
 
 2. Model fitness was acceptable for logit 2 model with Hosmer Lemeshow Test was not significant and overall percentage = `r round(2048/2668*100, 1)`%
 
-*note: please refer [appendix (link to rpub)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for model assessment*
+*note: Please refer [Appendix A (link to rpub : https://rpubs.com/puterabemi/CategoryDataAnalysis)](https://rpubs.com/puterabemi/CategoryDataAnalysis) for model assessment*
 
 
 ## Multinomial Logistic Regression Result
@@ -456,7 +457,9 @@ kable(result_mulnommod0, digits = 3, align = "lllcccccc") %>%
 
 # Post-script
 
-Session info
+## Session Info
+
+Session Info
 
 ```{r}
 sessionInfo()
